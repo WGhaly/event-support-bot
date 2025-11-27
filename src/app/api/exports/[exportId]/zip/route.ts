@@ -1,7 +1,7 @@
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { NextResponse } from 'next/server';
-import { writeFile, readFile } from 'fs/promises';
+import { readFile } from 'fs/promises';
 import path from 'path';
 import archiver from 'archiver';
 import { createWriteStream } from 'fs';
