@@ -4,7 +4,7 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { createErrorResponse, createSuccessResponse } from '@/lib/utils';
 import { generateBadges } from '@/lib/badge-generator';
-import { writeFile, mkdir } from 'fs/promises';
+import { put } from '@vercel/blob';
 import path from 'path';
 
 const createExportSchema = z.object({
@@ -217,30 +217,28 @@ async function generateBadgesAsync(
     const generationTime = Date.now() - startTime;
     console.log(`Generated ${badges.length} badges in ${generationTime}ms`);
 
-    // Save badges to local filesystem
-    console.log('Saving badges to filesystem...');
+    // Upload badges to Vercel Blob Storage
+    console.log('Uploading badges to Blob Storage...');
     const uploadStartTime = Date.now();
 
-    // Create export directory
-    const exportDir = path.join(process.cwd(), 'public', 'exports', exportId);
-    await mkdir(exportDir, { recursive: true });
-
-    // Create a simple "manifest" file listing all badges
     const badgeUrls: string[] = [];
 
-    // Save each badge
+    // Upload each badge to Blob Storage
     for (let i = 0; i < badges.length; i++) {
       const badge = badges[i];
       const filename = `badge-${String(i + 1).padStart(4, '0')}.png`;
-      const filepath = path.join(exportDir, filename);
+      const blobPath = `badges/${exportId}/${filename}`;
 
-      await writeFile(filepath, badge);
+      const blob = await put(blobPath, badge, {
+        access: 'public',
+        contentType: 'image/png',
+      });
 
-      badgeUrls.push(`/exports/${exportId}/${filename}`);
+      badgeUrls.push(blob.url);
 
       // Log progress every 10 badges
       if ((i + 1) % 10 === 0 || i === badges.length - 1) {
-        console.log(`Saved ${i + 1}/${badges.length} badges`);
+        console.log(`Uploaded ${i + 1}/${badges.length} badges`);
       }
     }
 
@@ -252,20 +250,25 @@ async function generateBadgesAsync(
       generatedAt: new Date().toISOString(),
     };
 
-    const manifestPath = path.join(exportDir, 'manifest.json');
-    await writeFile(manifestPath, JSON.stringify(manifest, null, 2));
-
-    const manifestUrl = `/exports/${exportId}/manifest.json`;
+    // Upload manifest to Blob Storage
+    const manifestBlob = await put(
+      `badges/${exportId}/manifest.json`,
+      JSON.stringify(manifest, null, 2),
+      {
+        access: 'public',
+        contentType: 'application/json',
+      }
+    );
 
     const uploadTime = Date.now() - uploadStartTime;
-    console.log(`Saved ${badges.length} badges in ${uploadTime}ms`);
+    console.log(`Uploaded ${badges.length} badges in ${uploadTime}ms`);
 
     // Update export record to COMPLETED
     await prisma.export.update({
       where: { id: exportId },
       data: {
         status: 'completed',
-        exportUrl: manifestUrl,
+        exportUrl: manifestBlob.url,
         completedAt: new Date(),
       },
     });

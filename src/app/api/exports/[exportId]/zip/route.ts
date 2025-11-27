@@ -1,10 +1,7 @@
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { NextResponse } from 'next/server';
-import { readFile } from 'fs/promises';
-import path from 'path';
 import archiver from 'archiver';
-import { createWriteStream } from 'fs';
 
 export async function POST(
   _request: Request,
@@ -40,65 +37,66 @@ export async function POST(
       );
     }
 
-    // Load manifest to get all badge URLs
-    const manifestPath = path.join(
-      process.cwd(),
-      'public',
-      'exports',
-      exportId,
-      'manifest.json'
-    );
+    if (!exportRecord.exportUrl) {
+      return NextResponse.json(
+        { error: { message: 'Export manifest not found' } },
+        { status: 404 }
+      );
+    }
 
-    const manifestContent = await readFile(manifestPath, 'utf-8');
-    const manifest = JSON.parse(manifestContent);
+    // Fetch manifest from Blob Storage
+    const manifestResponse = await fetch(exportRecord.exportUrl);
+    if (!manifestResponse.ok) {
+      throw new Error('Failed to fetch manifest');
+    }
+    const manifest = await manifestResponse.json();
 
-    // Create ZIP file in the exports directory
-    const zipFilename = `badges-${exportId}.zip`;
-    const zipPath = path.join(
-      process.cwd(),
-      'public',
-      'exports',
-      exportId,
-      zipFilename
-    );
-
-    // Create ZIP archive
-    await new Promise<void>((resolve, reject) => {
-      const output = createWriteStream(zipPath);
-      const archive = archiver('zip', {
-        zlib: { level: 9 }, // Maximum compression
-      });
-
-      output.on('close', () => resolve());
-      archive.on('error', (err) => reject(err));
-
-      archive.pipe(output);
-
-      // Add each badge to the ZIP
-      for (const badgeUrl of manifest.badges) {
-        const badgeFilename = path.basename(badgeUrl);
-        const badgePath = path.join(
-          process.cwd(),
-          'public',
-          'exports',
-          exportId,
-          badgeFilename
-        );
-        archive.file(badgePath, { name: badgeFilename });
-      }
-
-      // Add manifest to ZIP
-      archive.file(manifestPath, { name: 'manifest.json' });
-
-      archive.finalize();
+    // Create ZIP archive in memory
+    const archive = archiver('zip', {
+      zlib: { level: 9 }, // Maximum compression
     });
 
-    const zipUrl = `/exports/${exportId}/${zipFilename}`;
+    const chunks: Buffer[] = [];
+    
+    archive.on('data', (chunk: Buffer) => {
+      chunks.push(chunk);
+    });
 
-    return NextResponse.json({
-      data: {
-        zipUrl,
-        badgeCount: manifest.badgeCount,
+    archive.on('error', (err: Error) => {
+      throw err;
+    });
+
+    // Add each badge to the ZIP by fetching from blob storage
+    for (const badgeUrl of manifest.badges) {
+      const badgeResponse = await fetch(badgeUrl);
+      if (!badgeResponse.ok) {
+        throw new Error(`Failed to fetch badge: ${badgeUrl}`);
+      }
+      const badgeBuffer = Buffer.from(await badgeResponse.arrayBuffer());
+      const badgeFilename = badgeUrl.split('/').pop() || 'badge.png';
+      
+      archive.append(badgeBuffer, { name: badgeFilename });
+    }
+
+    // Add manifest to ZIP
+    archive.append(JSON.stringify(manifest, null, 2), { name: 'manifest.json' });
+
+    // Finalize the archive
+    await archive.finalize();
+
+    // Wait for all data to be collected
+    await new Promise<void>((resolve) => {
+      archive.on('end', () => resolve());
+    });
+
+    const zipBuffer = Buffer.concat(chunks);
+
+    // Return ZIP as response
+    return new NextResponse(zipBuffer, {
+      headers: {
+        'Content-Type': 'application/zip',
+        'Content-Disposition': `attachment; filename="badges-${exportId}.zip"`,
+        'Content-Length': zipBuffer.length.toString(),
       },
     });
   } catch (error) {
