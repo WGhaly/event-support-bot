@@ -9,18 +9,23 @@ try {
   
   // Try multiple possible paths for fonts
   const possibleFontDirs = [
-    path.join(cwd, 'public', 'fonts'),
-    path.join(cwd, '.next', 'static', 'fonts'),
-    path.join(cwd, 'fonts'),
+    path.join(cwd, 'src', 'fonts'),           // Source directory (bundled in .next)
+    path.join(cwd, '.next', 'server', 'fonts'), // Next.js server build output
+    path.join(cwd, 'public', 'fonts'),        // Public directory
+    path.join(cwd, 'fonts'),                  // Root fonts directory
   ];
   
   let fontsDir = '';
   for (const dir of possibleFontDirs) {
     console.log(`[FONT INIT] Checking directory: ${dir}`);
     if (fs.existsSync(dir)) {
-      fontsDir = dir;
-      console.log(`[FONT INIT] ✓ Found fonts directory: ${dir}`);
-      break;
+      const hasInterRegular = fs.existsSync(path.join(dir, 'Inter-Regular.ttf'));
+      console.log(`[FONT INIT] Directory exists: ${dir}, has Inter-Regular.ttf: ${hasInterRegular}`);
+      if (hasInterRegular) {
+        fontsDir = dir;
+        console.log(`[FONT INIT] ✓ Found fonts directory: ${dir}`);
+        break;
+      }
     }
   }
   
