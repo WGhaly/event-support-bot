@@ -114,6 +114,10 @@ export async function POST(req: NextRequest) {
     const mappings = JSON.parse(fieldMapping.mappings as string);
     const dataRows = JSON.parse(fieldMapping.dataset.data as string);
 
+    console.log('[EXPORT DEBUG] Template fields:', JSON.stringify(templateFields, null, 2));
+    console.log('[EXPORT DEBUG] Mappings:', JSON.stringify(mappings, null, 2));
+    console.log('[EXPORT DEBUG] First data row:', JSON.stringify(dataRows[0], null, 2));
+
     // Create export record with PENDING status
     const exportRecord = await prisma.export.create({
       data: {
@@ -195,6 +199,10 @@ async function generateBadgesAsync(
 
     console.log(`Starting badge generation for export ${exportId}`);
     const startTime = Date.now();
+
+    console.log('[BADGE DEBUG] Fields:', JSON.stringify(templateFields, null, 2));
+    console.log('[BADGE DEBUG] Mappings:', JSON.stringify(mappings, null, 2));
+    console.log('[BADGE DEBUG] First row:', JSON.stringify(dataRows[0], null, 2));
 
     // Template URL can be either a Blob Storage URL (https://...) or a local path (/...)
     // For local paths, convert to absolute file system path
