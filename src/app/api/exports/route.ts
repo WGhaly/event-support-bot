@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { createErrorResponse, createSuccessResponse } from '@/lib/utils';
-import { generateBadges } from '@/lib/badge-generator';
+import { generateBadges, initializeFonts } from '@/lib/badge-generator';
 import { put } from '@vercel/blob';
 import path from 'path';
 
@@ -193,6 +193,13 @@ async function generateBadgesAsync(
   dataRows: Record<string, unknown>[]
 ) {
   try {
+    // Initialize fonts before badge generation
+    const fontInit = initializeFonts();
+    if (!fontInit.success) {
+      throw new Error(`Font initialization failed: ${fontInit.error}`);
+    }
+    console.log(`Fonts initialized: ${fontInit.fontsRegistered} fonts registered`);
+
     // Update status to PROCESSING
     await prisma.export.update({
       where: { id: exportId },
