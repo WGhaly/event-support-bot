@@ -5,7 +5,7 @@ import { createErrorResponse, createSuccessResponse } from '@/lib/utils';
 
 // GET individual export status
 export async function GET(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ exportId: string }> }
 ) {
   try {
@@ -77,7 +77,7 @@ export async function GET(
 
 // DELETE export
 export async function DELETE(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ exportId: string }> }
 ) {
   try {
