@@ -14,6 +14,7 @@ export async function loginAction(formData: FormData) {
       password,
       redirectTo: '/dashboard',
     });
+    return { success: true };
   } catch (error) {
     if (error instanceof AuthError) {
       switch (error.type) {
