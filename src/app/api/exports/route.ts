@@ -117,6 +117,8 @@ export async function POST(req: NextRequest) {
     console.log('[EXPORT DEBUG] Template fields:', JSON.stringify(templateFields, null, 2));
     console.log('[EXPORT DEBUG] Mappings:', JSON.stringify(mappings, null, 2));
     console.log('[EXPORT DEBUG] First data row:', JSON.stringify(dataRows[0], null, 2));
+    console.log('[EXPORT DEBUG] Field IDs from template:', templateFields.map((f: any) => f.id));
+    console.log('[EXPORT DEBUG] Mapping keys:', Object.keys(mappings));
 
     // Create export record with PENDING status
     const exportRecord = await prisma.export.create({
@@ -218,7 +220,21 @@ async function generateBadgesAsync(
       templateImageUrl: templateFilePath,
       templateWidth,
       templateHeight,
-      fields: templateFields as never[],
+      fields: templateFields as Array<{
+        id: string;
+        text: string;
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+        fontSize: number;
+        fontFamily: string;
+        fill: string;
+        fontStyle?: string;
+        align?: 'left' | 'center' | 'right';
+        verticalAlign?: 'top' | 'middle' | 'bottom';
+        rotation?: number;
+      }>,
       mappings,
       dataRows,
       onProgress: (current, total) => {
