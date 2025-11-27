@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createCanvas, GlobalFonts } from '@napi-rs/canvas';
+import { initializeFonts } from '@/lib/badge-generator';
 import fs from 'fs';
 import path from 'path';
 
@@ -16,6 +17,9 @@ export async function GET() {
   };
 
   try {
+    // Initialize fonts first
+    const fontInit = initializeFonts();
+    diagnostics.fontInitialization = fontInit;
     // Check possible font directories
     const possibleFontDirs = [
       path.join(process.cwd(), 'src', 'fonts'),

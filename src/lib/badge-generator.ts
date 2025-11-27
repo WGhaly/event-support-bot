@@ -2,69 +2,97 @@ import { createCanvas, loadImage, GlobalFonts } from '@napi-rs/canvas';
 import path from 'path';
 import fs from 'fs';
 
-// Register bundled fonts for Vercel compatibility
-try {
-  const cwd = process.cwd();
-  console.log(`[FONT INIT] Current working directory: ${cwd}`);
-  
-  // Try multiple possible paths for fonts
-  const possibleFontDirs = [
-    path.join(cwd, 'src', 'fonts'),           // Source directory (bundled in .next)
-    path.join(cwd, '.next', 'server', 'fonts'), // Next.js server build output
-    path.join(cwd, 'public', 'fonts'),        // Public directory
-    path.join(cwd, 'fonts'),                  // Root fonts directory
-  ];
-  
-  let fontsDir = '';
-  for (const dir of possibleFontDirs) {
-    console.log(`[FONT INIT] Checking directory: ${dir}`);
-    if (fs.existsSync(dir)) {
-      const hasInterRegular = fs.existsSync(path.join(dir, 'Inter-Regular.ttf'));
-      console.log(`[FONT INIT] Directory exists: ${dir}, has Inter-Regular.ttf: ${hasInterRegular}`);
-      if (hasInterRegular) {
-        fontsDir = dir;
-        console.log(`[FONT INIT] ✓ Found fonts directory: ${dir}`);
-        break;
-      }
-    }
-  }
-  
-  if (!fontsDir) {
-    console.error('[FONT INIT] ⚠️ No fonts directory found! Checked:', possibleFontDirs);
-  }
-  
-  // Register bundled Inter fonts
-  const bundledFonts = [
-    { path: path.join(fontsDir, 'Inter-Regular.ttf'), family: 'Inter' },
-    { path: path.join(fontsDir, 'Inter-Bold.ttf'), family: 'Inter Bold' },
-  ];
+let fontsInitialized = false;
 
-  let fontsRegistered = 0;
-  for (const font of bundledFonts) {
-    try {
-      const exists = fs.existsSync(font.path);
-      console.log(`[FONT INIT] Font file ${font.path} exists: ${exists}`);
-      
-      if (exists) {
-        GlobalFonts.registerFromPath(font.path, font.family);
-        fontsRegistered++;
-        console.log(`[FONT INIT] ✓ Registered font: ${font.family} from ${font.path}`);
-      }
-    } catch (e) {
-      console.error(`[FONT INIT] ✗ Could not register font ${font.family}:`, e);
-    }
+/**
+ * Initialize and register fonts for canvas text rendering
+ * Must be called before generating badges
+ */
+export function initializeFonts(): { success: boolean; fontsRegistered: number; error?: string } {
+  if (fontsInitialized) {
+    return { success: true, fontsRegistered: GlobalFonts.families.length };
   }
 
-  if (fontsRegistered === 0) {
-    console.error('[FONT INIT] ⚠️ WARNING: No fonts were registered! Text rendering will fail.');
-    console.error('[FONT INIT] Available fonts:', GlobalFonts.families);
-  } else {
-    console.log(`[FONT INIT] ✓ Successfully registered ${fontsRegistered} font(s)`);
-    console.log('[FONT INIT] Available fonts:', GlobalFonts.families);
+  try {
+    const cwd = process.cwd();
+    console.log(`[FONT INIT] Current working directory: ${cwd}`);
+    
+    // Try multiple possible paths for fonts
+    const possibleFontDirs = [
+      path.join(cwd, 'src', 'fonts'),           // Source directory (bundled in .next)
+      path.join(cwd, '.next', 'server', 'fonts'), // Next.js server build output
+      path.join(cwd, 'public', 'fonts'),        // Public directory
+      path.join(cwd, 'fonts'),                  // Root fonts directory
+    ];
+    
+    let fontsDir = '';
+    for (const dir of possibleFontDirs) {
+      console.log(`[FONT INIT] Checking directory: ${dir}`);
+      if (fs.existsSync(dir)) {
+        const hasInterRegular = fs.existsSync(path.join(dir, 'Inter-Regular.ttf'));
+        console.log(`[FONT INIT] Directory exists: ${dir}, has Inter-Regular.ttf: ${hasInterRegular}`);
+        if (hasInterRegular) {
+          fontsDir = dir;
+          console.log(`[FONT INIT] ✓ Found fonts directory: ${dir}`);
+          break;
+        }
+      }
+    }
+    
+    if (!fontsDir) {
+      const error = '[FONT INIT] ⚠️ No fonts directory found! Checked: ' + possibleFontDirs.join(', ');
+      console.error(error);
+      return { success: false, fontsRegistered: 0, error };
+    }
+    
+    // Register bundled Inter fonts
+    const bundledFonts = [
+      { path: path.join(fontsDir, 'Inter-Regular.ttf'), family: 'Inter' },
+      { path: path.join(fontsDir, 'Inter-Bold.ttf'), family: 'Inter Bold' },
+    ];
+
+    let fontsRegistered = 0;
+    const errors: string[] = [];
+    
+    for (const font of bundledFonts) {
+      try {
+        const exists = fs.existsSync(font.path);
+        console.log(`[FONT INIT] Font file ${font.path} exists: ${exists}`);
+        
+        if (exists) {
+          GlobalFonts.registerFromPath(font.path, font.family);
+          fontsRegistered++;
+          console.log(`[FONT INIT] ✓ Registered font: ${font.family} from ${font.path}`);
+        } else {
+          errors.push(`Font file not found: ${font.path}`);
+        }
+      } catch (e: any) {
+        const errorMsg = `Could not register font ${font.family}: ${e.message}`;
+        console.error(`[FONT INIT] ✗ ${errorMsg}`);
+        errors.push(errorMsg);
+      }
+    }
+
+    if (fontsRegistered === 0) {
+      const error = '[FONT INIT] ⚠️ WARNING: No fonts were registered! Text rendering will fail. ' + errors.join('; ');
+      console.error(error);
+      console.error('[FONT INIT] Available fonts:', GlobalFonts.families);
+      return { success: false, fontsRegistered: 0, error };
+    } else {
+      console.log(`[FONT INIT] ✓ Successfully registered ${fontsRegistered} font(s)`);
+      console.log('[FONT INIT] Available fonts:', GlobalFonts.families);
+      fontsInitialized = true;
+      return { success: true, fontsRegistered };
+    }
+  } catch (e: any) {
+    const error = '[FONT INIT] ⚠️ CRITICAL: Font registration failed: ' + e.message;
+    console.error(error);
+    return { success: false, fontsRegistered: 0, error };
   }
-} catch (e) {
-  console.error('[FONT INIT] ⚠️ CRITICAL: Font registration failed:', e);
 }
+
+// Try to initialize fonts on module load
+initializeFonts();
 
 /**
  * Map common font families to available bundled fonts
