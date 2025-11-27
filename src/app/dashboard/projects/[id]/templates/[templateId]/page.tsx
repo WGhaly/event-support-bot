@@ -123,7 +123,7 @@ export default function TemplateEditorPage({ params }: { params: Promise<{ id: s
   };
 
   // Helper function to estimate optimal font size
-  const calculateOptimalFontSize = (text: string, width: number, height: number, fontFamily: string = 'Arial'): number => {
+  const calculateOptimalFontSize = (text: string, width: number, height: number, _fontFamily: string = 'Arial'): number => {
     if (!text || text.length === 0) return 16;
     
     // Estimate character width (rough approximation)
