@@ -21,6 +21,10 @@ export default function LoginForm({ error: initialError }: { error?: string }) {
       }
       // If no error, the action will redirect automatically
     } catch (err) {
+      // Ignore NEXT_REDIRECT errors as they are expected behavior in Next.js 15
+      if (err instanceof Error && err.message === 'NEXT_REDIRECT') {
+        return; // Let the redirect happen
+      }
       console.error('Login error:', err);
       setError('An error occurred. Please try again.');
       setLoading(false);
