@@ -109,14 +109,23 @@ export async function generateBadges(
     ctx.drawImage(templateImage, 0, 0, templateWidth, templateHeight);
 
     // Draw text fields with mapped data
+    console.log(`[BADGE GEN] Processing ${fields.length} fields for row ${i + 1}`);
     for (const field of fields) {
       const columnName = mappings[field.id];
-      if (!columnName) continue;
+      console.log(`[BADGE GEN] Field ${field.id} (${field.text}) -> column: ${columnName}`);
+      if (!columnName) {
+        console.log(`[BADGE GEN] No mapping for field ${field.id}, skipping`);
+        continue;
+      }
 
       const value = row[columnName];
       const text = String(value ?? '');
+      console.log(`[BADGE GEN] Value from row: "${text}"`);
 
-      if (!text) continue;
+      if (!text) {
+        console.log(`[BADGE GEN] Empty text for field ${field.id}, skipping`);
+        continue;
+      }
 
       // Calculate optimal font size to fit text within field dimensions
       const fontStyle = field.fontStyle || '';
