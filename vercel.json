@@ -1,7 +1,3 @@
 {
-  "buildCommand": "prisma generate && prisma migrate deploy && next build",
-  "env": {
-    "DATABASE_URL": "@postgres_url",
-    "DIRECT_URL": "@postgres_url_non_pooling"
-  }
+  "buildCommand": "prisma generate && next build"
 }

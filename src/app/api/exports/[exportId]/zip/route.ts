@@ -9,7 +9,7 @@ import { Readable } from 'stream';
 
 export async function POST(
   request: Request,
-  { params }: { params: { exportId: string } }
+  { params }: { params: Promise<{ exportId: string }> }
 ) {
   try {
     const session = await auth();
@@ -20,7 +20,7 @@ export async function POST(
       );
     }
 
-    const { exportId } = params;
+    const { exportId } = await params;
 
     // Get export record and verify ownership
     const exportRecord = await prisma.export.findUnique({
