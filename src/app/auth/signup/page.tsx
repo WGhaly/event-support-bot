@@ -10,7 +10,7 @@ export const metadata = {
 export default async function SignupPage({
   searchParams,
 }: {
-  searchParams: { error?: string };
+  searchParams: Promise<{ error?: string }>;
 }) {
   // Redirect if already authenticated
   const session = await auth();
@@ -18,8 +18,9 @@ export default async function SignupPage({
     redirect('/dashboard');
   }
 
-  const errorMessage = searchParams.error
-    ? decodeURIComponent(searchParams.error)
+  const params = await searchParams;
+  const errorMessage = params.error
+    ? decodeURIComponent(params.error)
     : null;
 
   return (

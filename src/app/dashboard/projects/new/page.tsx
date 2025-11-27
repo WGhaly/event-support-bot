@@ -9,15 +9,16 @@ export const metadata = {
 export default async function NewProjectPage({
   searchParams,
 }: {
-  searchParams: { error?: string };
+  searchParams: Promise<{ error?: string }>;
 }) {
   const session = await auth();
   if (!session) {
     redirect('/auth/login');
   }
 
-  const errorMessage = searchParams.error
-    ? decodeURIComponent(searchParams.error)
+  const params = await searchParams;
+  const errorMessage = params.error
+    ? decodeURIComponent(params.error)
     : null;
 
   return (
