@@ -5,10 +5,9 @@ import { readFile } from 'fs/promises';
 import path from 'path';
 import archiver from 'archiver';
 import { createWriteStream } from 'fs';
-import { Readable } from 'stream';
 
 export async function POST(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ exportId: string }> }
 ) {
   try {
