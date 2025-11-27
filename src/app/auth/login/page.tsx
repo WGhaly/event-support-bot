@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import LoginForm from '@/components/login-form';
 
 export const metadata = {
-  title: 'Login | ID Card Platform',
+  title: 'Login | The Luj Project',
   description: 'Sign in to your account',
 };
 
@@ -36,11 +36,12 @@ export default async function LoginPage({
     : null;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-100 px-4">
+      <div className="max-w-md w-full bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl border border-blue-100 p-8">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Welcome Back</h1>
-          <p className="mt-2 text-gray-600">Sign in to your account</p>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent mb-2">The Luj Project</h1>
+          <p className="text-xl font-semibold text-blue-900 mb-1">Welcome Back</p>
+          <p className="mt-2 text-blue-700/70">Sign in to your account</p>
         </div>
 
         {successMessage && (

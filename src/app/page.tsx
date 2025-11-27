@@ -18,13 +18,13 @@ export default function HomePage() {
         className="relative flex flex-col gap-4 items-center justify-center px-4"
       >
         {/* Main Heading */}
-        <div className="text-4xl md:text-7xl font-bold dark:text-white text-center bg-clip-text text-transparent bg-gradient-to-b from-neutral-900 to-neutral-600 dark:from-neutral-50 dark:to-neutral-400">
-          ID Card Automation Platform
+        <div className="text-5xl md:text-8xl font-bold dark:text-white text-center bg-clip-text text-transparent bg-gradient-to-br from-blue-600 via-blue-500 to-blue-700 dark:from-blue-400 dark:via-blue-300 dark:to-blue-500">
+          The Luj Project
         </div>
         
         {/* Subheading */}
-        <div className="font-light text-lg md:text-3xl dark:text-neutral-200 text-neutral-700 py-4 text-center max-w-3xl">
-          Generate professional ID cards in bulk. Upload your design, add data, and create badges for your entire team in minutes.
+        <div className="font-light text-lg md:text-3xl dark:text-blue-100 text-blue-900/80 py-4 text-center max-w-3xl">
+          Professional badge automation platform. Design templates, import data, and generate ID cards at scale.
         </div>
 
         {/* Feature Pills */}
@@ -64,13 +64,13 @@ export default function HomePage() {
         >
           <Link
             href="/auth/signup"
-            className="bg-black dark:bg-white rounded-full w-fit text-white dark:text-black px-8 py-3 font-semibold hover:scale-105 transition-transform shadow-lg"
+            className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-full w-fit text-white px-8 py-3 font-semibold hover:scale-105 transition-all shadow-lg shadow-blue-500/30"
           >
             Get Started Free
           </Link>
           <Link
             href="/auth/login"
-            className="bg-white/20 dark:bg-black/20 backdrop-blur-sm rounded-full w-fit text-black dark:text-white px-8 py-3 font-semibold hover:scale-105 transition-transform border border-neutral-300 dark:border-neutral-700"
+            className="bg-white/90 dark:bg-blue-950/50 backdrop-blur-sm rounded-full w-fit text-blue-700 dark:text-blue-200 px-8 py-3 font-semibold hover:scale-105 transition-all border-2 border-blue-200 dark:border-blue-700 hover:border-blue-300 dark:hover:border-blue-600"
           >
             Sign In
           </Link>

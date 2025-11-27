@@ -3,7 +3,7 @@ import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 
 export const metadata = {
-  title: 'Sign Up | ID Card Platform',
+  title: 'Sign Up | The Luj Project',
   description: 'Create your free account',
 };
 
@@ -23,15 +23,16 @@ export default async function SignupPage({
     : null;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-100 px-4">
+      <div className="max-w-md w-full bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl border border-blue-100 p-8">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Get Started Free</h1>
-          <p className="mt-2 text-gray-600">Create your account in seconds</p>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent mb-2">The Luj Project</h1>
+          <p className="text-xl font-semibold text-blue-900 mb-1">Get Started Free</p>
+          <p className="mt-2 text-blue-700/70">Create your account in seconds</p>
         </div>
 
         {errorMessage && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
             <p className="text-sm text-red-800">{errorMessage}</p>
           </div>
         )}
@@ -41,7 +42,7 @@ export default async function SignupPage({
           <div>
             <label
               htmlFor="name"
-              className="block text-sm font-medium text-gray-700 mb-2"
+              className="block text-sm font-medium text-blue-900 mb-2"
             >
               Full Name
             </label>
@@ -51,7 +52,7 @@ export default async function SignupPage({
               type="text"
               required
               autoComplete="name"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              className="w-full px-4 py-3 border-2 border-blue-100 bg-blue-50/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
               placeholder="John Smith"
             />
           </div>
@@ -59,7 +60,7 @@ export default async function SignupPage({
           <div>
             <label
               htmlFor="email"
-              className="block text-sm font-medium text-gray-700 mb-2"
+              className="block text-sm font-medium text-blue-900 mb-2"
             >
               Email Address
             </label>
@@ -69,7 +70,7 @@ export default async function SignupPage({
               type="email"
               required
               autoComplete="email"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              className="w-full px-4 py-3 border-2 border-blue-100 bg-blue-50/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
               placeholder="you@example.com"
             />
           </div>
@@ -77,7 +78,7 @@ export default async function SignupPage({
           <div>
             <label
               htmlFor="password"
-              className="block text-sm font-medium text-gray-700 mb-2"
+              className="block text-sm font-medium text-blue-900 mb-2"
             >
               Password
             </label>
@@ -88,24 +89,24 @@ export default async function SignupPage({
               required
               autoComplete="new-password"
               minLength={6}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              className="w-full px-4 py-3 border-2 border-blue-100 bg-blue-50/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
               placeholder="At least 6 characters"
             />
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-xs text-blue-600/60">
               Must be at least 6 characters long
             </p>
           </div>
 
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-700 transition focus:ring-4 focus:ring-blue-200"
+            className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-3 px-4 rounded-xl font-semibold transition-all focus:ring-4 focus:ring-blue-200 shadow-lg shadow-blue-500/30"
           >
             Create Account
           </button>
         </form>
 
         <div className="mt-6 text-center">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-blue-700/70">
             Already have an account?{' '}
             <Link
               href="/auth/login"
@@ -119,7 +120,7 @@ export default async function SignupPage({
         <div className="mt-4 text-center">
           <Link
             href="/"
-            className="text-sm text-gray-500 hover:text-gray-700 transition"
+            className="text-sm text-blue-600/60 hover:text-blue-700 transition"
           >
             ← Back to home
           </Link>

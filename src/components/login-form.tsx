@@ -30,7 +30,7 @@ export default function LoginForm({ error: initialError }: { error?: string }) {
   return (
     <>
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
           <p className="text-sm text-red-800">{error}</p>
         </div>
       )}
@@ -39,7 +39,7 @@ export default function LoginForm({ error: initialError }: { error?: string }) {
         <div>
           <label
             htmlFor="email"
-            className="block text-sm font-medium text-gray-700 mb-2"
+            className="block text-sm font-medium text-blue-900 mb-2"
           >
             Email Address
           </label>
@@ -49,7 +49,7 @@ export default function LoginForm({ error: initialError }: { error?: string }) {
             type="email"
             required
             autoComplete="email"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+            className="w-full px-4 py-3 border-2 border-blue-100 bg-blue-50/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
             placeholder="you@example.com"
           />
         </div>
@@ -57,7 +57,7 @@ export default function LoginForm({ error: initialError }: { error?: string }) {
         <div>
           <label
             htmlFor="password"
-            className="block text-sm font-medium text-gray-700 mb-2"
+            className="block text-sm font-medium text-blue-900 mb-2"
           >
             Password
           </label>
@@ -68,7 +68,7 @@ export default function LoginForm({ error: initialError }: { error?: string }) {
             required
             autoComplete="current-password"
             minLength={6}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+            className="w-full px-4 py-3 border-2 border-blue-100 bg-blue-50/50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
             placeholder="••••••••"
           />
         </div>
@@ -76,14 +76,14 @@ export default function LoginForm({ error: initialError }: { error?: string }) {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-700 transition focus:ring-4 focus:ring-blue-200 disabled:bg-gray-300 disabled:cursor-not-allowed"
+          className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-3 px-4 rounded-xl font-semibold transition-all focus:ring-4 focus:ring-blue-200 disabled:bg-gray-300 disabled:cursor-not-allowed shadow-lg shadow-blue-500/30"
         >
           {loading ? 'Signing in...' : 'Sign In'}
         </button>
       </form>
 
       <div className="mt-6 text-center">
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-blue-700/70">
           Don&apos;t have an account?{' '}
           <Link
             href="/auth/signup"
@@ -97,7 +97,7 @@ export default function LoginForm({ error: initialError }: { error?: string }) {
       <div className="mt-4 text-center">
         <Link
           href="/"
-          className="text-sm text-gray-500 hover:text-gray-700 transition"
+          className="text-sm text-blue-600/60 hover:text-blue-700 transition"
         >
           ← Back to home
         </Link>
