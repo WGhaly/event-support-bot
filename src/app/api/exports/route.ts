@@ -196,8 +196,12 @@ async function generateBadgesAsync(
     console.log(`Starting badge generation for export ${exportId}`);
     const startTime = Date.now();
 
-    // Convert URL to file system path
-    const templateFilePath = templateImageUrl.startsWith('/')
+    // Template URL can be either a Blob Storage URL (https://...) or a local path (/...)
+    // For local paths, convert to absolute file system path
+    // For URLs, pass directly to loadImage (which supports HTTP/HTTPS URLs)
+    const templateFilePath = templateImageUrl.startsWith('http')
+      ? templateImageUrl
+      : templateImageUrl.startsWith('/')
       ? path.join(process.cwd(), 'public', templateImageUrl)
       : templateImageUrl;
 
