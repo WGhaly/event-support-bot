@@ -96,8 +96,9 @@ initializeFonts();
 
 /**
  * Map common font families to available bundled fonts
+ * Returns the appropriate registered font family name
  */
-function normalizeFontFamily(fontFamily: string): string {
+function normalizeFontFamily(fontFamily: string, isBold: boolean = false): string {
   const normalized = fontFamily.toLowerCase();
   
   // Map common system fonts to Inter
@@ -112,7 +113,11 @@ function normalizeFontFamily(fontFamily: string): string {
     'inter': 'Inter',
   };
   
-  return fontMap[normalized] || 'Inter'; // Default to Inter
+  const baseFont = fontMap[normalized] || 'Inter';
+  
+  // If bold is requested, use the 'Inter Bold' registered font family
+  // @napi-rs/canvas requires exact family names, not CSS-style modifiers
+  return isBold && baseFont === 'Inter' ? 'Inter Bold' : baseFont;
 }
 
 export interface TemplateField {
@@ -185,6 +190,14 @@ export async function generateBadges(
     onProgress,
   } = options;
 
+  // Log registered fonts at start of badge generation
+  console.log('[BADGE GEN] ========== Starting Badge Generation ==========');
+  console.log('[BADGE GEN] Registered fonts:', GlobalFonts.families);
+  console.log('[BADGE GEN] Font count:', GlobalFonts.families.length);
+  console.log('[BADGE GEN] Template size:', templateWidth, 'x', templateHeight);
+  console.log('[BADGE GEN] Fields to process:', fields.length);
+  console.log('[BADGE GEN] Data rows:', dataRows.length);
+
   // Load template image once
   const templateImage = await loadImage(templateImageUrl);
 
@@ -222,8 +235,11 @@ export async function generateBadges(
 
       // Calculate optimal font size to fit text within field dimensions
       const fontStyle = field.fontStyle || '';
-      const normalizedFont = normalizeFontFamily(field.fontFamily);
+      const isBold = fontStyle.toLowerCase().includes('bold');
+      const normalizedFont = normalizeFontFamily(field.fontFamily, isBold);
       let optimalFontSize = field.fontSize;
+      
+      console.log(`[BADGE GEN] Field config: font="${field.fontFamily}", style="${fontStyle}", isBold=${isBold}, normalized="${normalizedFont}", size=${optimalFontSize}`);
       
       // Binary search for optimal font size if width/height are specified
       if (field.width && field.height) {
@@ -232,7 +248,10 @@ export async function generateBadges(
         
         while (minSize <= maxSize) {
           const mid = Math.floor((minSize + maxSize) / 2);
-          ctx.font = `${fontStyle} ${mid}px ${normalizedFont}`;
+          // Use normalized font directly (already includes Bold if needed)
+          // Don't add fontStyle modifier as it conflicts with registered font names
+          const fontStyleWithoutBold = isBold ? fontStyle.replace(/bold/gi, '').trim() : fontStyle;
+          ctx.font = `${fontStyleWithoutBold} ${mid}px ${normalizedFont}`.trim();
           
           // Wrap text and measure total height
           const lines = wrapText(ctx, text, field.width);
@@ -249,7 +268,11 @@ export async function generateBadges(
       }
 
       // Configure text style with optimal font size
-      ctx.font = `${fontStyle} ${optimalFontSize}px ${normalizedFont}`;
+      // Use normalized font directly (already includes Bold if needed)
+      // Don't add fontStyle 'bold' modifier as it conflicts with 'Inter Bold' family name
+      const fontStyleWithoutBold = isBold ? fontStyle.replace(/bold/gi, '').trim() : fontStyle;
+      const finalFontString = `${fontStyleWithoutBold} ${optimalFontSize}px ${normalizedFont}`.trim();
+      ctx.font = finalFontString;
       ctx.fillStyle = field.fill;
       ctx.textBaseline = 'top';
 
@@ -265,6 +288,17 @@ export async function generateBadges(
       } else if (field.verticalAlign === 'bottom' && field.height) {
         verticalOffset = field.height - totalTextHeight;
       }
+      
+      console.log(`[BADGE GEN] Setting font: "${finalFontString}"`);
+      console.log(`[BADGE GEN] Text color: ${field.fill}`);
+      console.log(`[BADGE GEN] Text to render: "${text}"`);
+      console.log(`[BADGE GEN] Lines to render: ${lines.length}`);
+      console.log(`[BADGE GEN] Current ctx.font: "${ctx.font}"`);
+      console.log(`[BADGE GEN] Position: (${field.x}, ${field.y}), Size: ${field.width}x${field.height}`);
+      console.log(`[BADGE GEN] Alignment: ${field.align || 'left'}, Vertical: ${field.verticalAlign || 'top'}`);
+      console.log(`[BADGE GEN] Line height: ${lineHeight}, Total height: ${totalTextHeight}`);
+      console.log(`[BADGE GEN] Vertical offset: ${verticalOffset}`);
+      console.log(`[BADGE GEN] Available fonts before render:`, GlobalFonts.families);
 
       // Apply rotation if specified
       if (field.rotation) {
@@ -277,7 +311,14 @@ export async function generateBadges(
           const yOffset = verticalOffset + (index * lineHeight);
           const xOffset = field.align === 'center' ? field.width / 2 : field.align === 'right' ? field.width : 0;
           ctx.textAlign = field.align || 'left';
-          ctx.fillText(line, xOffset, yOffset);
+          try {
+            console.log(`[BADGE GEN] Rendering line ${index + 1}/${lines.length}: "${line}" at (${xOffset}, ${yOffset})`);
+            ctx.fillText(line, xOffset, yOffset);
+            console.log(`[BADGE GEN] ✓ Line rendered successfully`);
+          } catch (err: any) {
+            console.error(`[BADGE GEN] ✗ Error rendering line:`, err.message);
+            throw err;
+          }
         });
         
         ctx.restore();
@@ -287,7 +328,14 @@ export async function generateBadges(
           const yOffset = field.y + verticalOffset + (index * lineHeight);
           const xOffset = field.align === 'center' ? field.x + field.width / 2 : field.align === 'right' ? field.x + field.width : field.x;
           ctx.textAlign = field.align || 'left';
-          ctx.fillText(line, xOffset, yOffset);
+          try {
+            console.log(`[BADGE GEN] Rendering line ${index + 1}/${lines.length}: "${line}" at (${xOffset}, ${yOffset})`);
+            ctx.fillText(line, xOffset, yOffset);
+            console.log(`[BADGE GEN] ✓ Line rendered successfully`);
+          } catch (err: any) {
+            console.error(`[BADGE GEN] ✗ Error rendering line:`, err.message);
+            throw err;
+          }
         });
       }
     }
