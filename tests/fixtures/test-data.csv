@@ -1,0 +1,6 @@
+name,email,title,company,department,phone
+John Doe,john.doe@example.com,Software Engineer,TechCorp,Engineering,555-0001
+Jane Smith,jane.smith@example.com,Product Manager,TechCorp,Product,555-0002
+Bob Johnson,bob.johnson@example.com,Designer,TechCorp,Design,555-0003
+Alice Williams,alice.williams@example.com,Data Scientist,TechCorp,Analytics,555-0004
+Charlie Brown,charlie.brown@example.com,DevOps Engineer,TechCorp,Infrastructure,555-0005
