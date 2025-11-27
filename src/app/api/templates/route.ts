@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import sharp from 'sharp';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
+import { put } from '@vercel/blob';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { createErrorResponse, createSuccessResponse } from '@/lib/utils';
@@ -172,27 +171,26 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Upload to local storage
-    const uploadsDir = join(process.cwd(), 'public', 'uploads', 'templates');
-    await mkdir(uploadsDir, { recursive: true });
+    // Upload to Vercel Blob Storage
+    const filename = `templates/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
     
-    const filename = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-    const filePath = join(uploadsDir, filename);
-    
+    let blobUrl: string;
     try {
-      await writeFile(filePath, buffer);
+      const blob = await put(filename, buffer, {
+        access: 'public',
+        contentType: file.type,
+      });
+      blobUrl = blob.url;
     } catch (error) {
-      console.error('File write error:', error);
+      console.error('Blob upload error:', error);
       return NextResponse.json(
         createErrorResponse(
-          'Failed to save file to storage',
+          'Failed to upload file to storage',
           'UPLOAD_ERROR'
         ),
         { status: 500 }
       );
     }
-
-    const blobUrl = `/uploads/templates/${filename}`;
 
     // Save template to database
     const template = await prisma.template.create({
