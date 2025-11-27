@@ -1,25 +1,55 @@
 import { createCanvas, loadImage, GlobalFonts } from '@napi-rs/canvas';
+import path from 'path';
 
-// Register default fonts
+// Register bundled fonts for Vercel compatibility
 try {
-  // Try to load system fonts (macOS/Linux)
-  const systemFonts = [
-    '/System/Library/Fonts/Helvetica.ttc',
-    '/System/Library/Fonts/Times.ttc',
-    '/System/Library/Fonts/Courier.ttc',
-    '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
-    '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf',
+  const fontsDir = path.join(process.cwd(), 'public', 'fonts');
+  
+  // Register bundled Inter fonts
+  const bundledFonts = [
+    { path: path.join(fontsDir, 'Inter-Regular.ttf'), family: 'Inter' },
+    { path: path.join(fontsDir, 'Inter-Bold.ttf'), family: 'Inter Bold' },
   ];
 
-  for (const fontPath of systemFonts) {
+  let fontsRegistered = 0;
+  for (const font of bundledFonts) {
     try {
-      GlobalFonts.registerFromPath(fontPath);
+      GlobalFonts.registerFromPath(font.path, font.family);
+      fontsRegistered++;
+      console.log(`✓ Registered font: ${font.family} from ${font.path}`);
     } catch (e) {
-      // Font not found, continue
+      console.warn(`✗ Could not register font ${font.family}:`, e);
     }
   }
+
+  if (fontsRegistered === 0) {
+    console.error('⚠️ WARNING: No fonts were registered! Text rendering will fail.');
+  } else {
+    console.log(`✓ Successfully registered ${fontsRegistered} font(s)`);
+  }
 } catch (e) {
-  console.warn('Could not register system fonts, using defaults');
+  console.error('⚠️ CRITICAL: Font registration failed:', e);
+}
+
+/**
+ * Map common font families to available bundled fonts
+ */
+function normalizeFontFamily(fontFamily: string): string {
+  const normalized = fontFamily.toLowerCase();
+  
+  // Map common system fonts to Inter
+  const fontMap: Record<string, string> = {
+    'arial': 'Inter',
+    'helvetica': 'Inter',
+    'sans-serif': 'Inter',
+    'system-ui': 'Inter',
+    'roboto': 'Inter',
+    'open sans': 'Inter',
+    'segoe ui': 'Inter',
+    'inter': 'Inter',
+  };
+  
+  return fontMap[normalized] || 'Inter'; // Default to Inter
 }
 
 export interface TemplateField {
@@ -129,6 +159,7 @@ export async function generateBadges(
 
       // Calculate optimal font size to fit text within field dimensions
       const fontStyle = field.fontStyle || '';
+      const normalizedFont = normalizeFontFamily(field.fontFamily);
       let optimalFontSize = field.fontSize;
       
       // Binary search for optimal font size if width/height are specified
@@ -138,7 +169,7 @@ export async function generateBadges(
         
         while (minSize <= maxSize) {
           const mid = Math.floor((minSize + maxSize) / 2);
-          ctx.font = `${fontStyle} ${mid}px ${field.fontFamily}`;
+          ctx.font = `${fontStyle} ${mid}px ${normalizedFont}`;
           
           // Wrap text and measure total height
           const lines = wrapText(ctx, text, field.width);
@@ -155,7 +186,7 @@ export async function generateBadges(
       }
 
       // Configure text style with optimal font size
-      ctx.font = `${fontStyle} ${optimalFontSize}px ${field.fontFamily}`;
+      ctx.font = `${fontStyle} ${optimalFontSize}px ${normalizedFont}`;
       ctx.fillStyle = field.fill;
       ctx.textBaseline = 'top';
 
