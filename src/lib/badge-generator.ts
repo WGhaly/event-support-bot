@@ -1,9 +1,32 @@
 import { createCanvas, loadImage, GlobalFonts } from '@napi-rs/canvas';
 import path from 'path';
+import fs from 'fs';
 
 // Register bundled fonts for Vercel compatibility
 try {
-  const fontsDir = path.join(process.cwd(), 'public', 'fonts');
+  const cwd = process.cwd();
+  console.log(`[FONT INIT] Current working directory: ${cwd}`);
+  
+  // Try multiple possible paths for fonts
+  const possibleFontDirs = [
+    path.join(cwd, 'public', 'fonts'),
+    path.join(cwd, '.next', 'static', 'fonts'),
+    path.join(cwd, 'fonts'),
+  ];
+  
+  let fontsDir = '';
+  for (const dir of possibleFontDirs) {
+    console.log(`[FONT INIT] Checking directory: ${dir}`);
+    if (fs.existsSync(dir)) {
+      fontsDir = dir;
+      console.log(`[FONT INIT] ✓ Found fonts directory: ${dir}`);
+      break;
+    }
+  }
+  
+  if (!fontsDir) {
+    console.error('[FONT INIT] ⚠️ No fonts directory found! Checked:', possibleFontDirs);
+  }
   
   // Register bundled Inter fonts
   const bundledFonts = [
@@ -14,21 +37,28 @@ try {
   let fontsRegistered = 0;
   for (const font of bundledFonts) {
     try {
-      GlobalFonts.registerFromPath(font.path, font.family);
-      fontsRegistered++;
-      console.log(`✓ Registered font: ${font.family} from ${font.path}`);
+      const exists = fs.existsSync(font.path);
+      console.log(`[FONT INIT] Font file ${font.path} exists: ${exists}`);
+      
+      if (exists) {
+        GlobalFonts.registerFromPath(font.path, font.family);
+        fontsRegistered++;
+        console.log(`[FONT INIT] ✓ Registered font: ${font.family} from ${font.path}`);
+      }
     } catch (e) {
-      console.warn(`✗ Could not register font ${font.family}:`, e);
+      console.error(`[FONT INIT] ✗ Could not register font ${font.family}:`, e);
     }
   }
 
   if (fontsRegistered === 0) {
-    console.error('⚠️ WARNING: No fonts were registered! Text rendering will fail.');
+    console.error('[FONT INIT] ⚠️ WARNING: No fonts were registered! Text rendering will fail.');
+    console.error('[FONT INIT] Available fonts:', GlobalFonts.families);
   } else {
-    console.log(`✓ Successfully registered ${fontsRegistered} font(s)`);
+    console.log(`[FONT INIT] ✓ Successfully registered ${fontsRegistered} font(s)`);
+    console.log('[FONT INIT] Available fonts:', GlobalFonts.families);
   }
 } catch (e) {
-  console.error('⚠️ CRITICAL: Font registration failed:', e);
+  console.error('[FONT INIT] ⚠️ CRITICAL: Font registration failed:', e);
 }
 
 /**
