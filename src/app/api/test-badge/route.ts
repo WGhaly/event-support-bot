@@ -1,14 +1,14 @@
 import { NextResponse } from 'next/server';
-import { generateBadges, initializeFonts } from '@/lib/badge-generator';
-import { GlobalFonts } from '@napi-rs/canvas';
+import { initializeFonts } from '@/lib/badge-generator';
+import { createCanvas, GlobalFonts } from '@napi-rs/canvas';
 
 /**
- * Test endpoint to generate a single badge with hardcoded data
- * This helps verify the font fix works without needing authentication
+ * Simple test endpoint to verify font rendering works
+ * Creates a basic badge with text to test the font fix
  */
 export async function GET() {
   try {
-    console.log('[TEST BADGE] Starting test badge generation...');
+    console.log('[TEST BADGE] Starting simple badge test...');
     
     // Initialize fonts explicitly
     const fontInit = initializeFonts();
@@ -21,104 +21,49 @@ export async function GET() {
         error: `Font initialization failed: ${fontInit.error}`,
       });
     }
+
+    // Create a simple test canvas
+    const canvas = createCanvas(800, 600);
+    const ctx = canvas.getContext('2d');
     
-    // Hardcoded test data matching our template
-    const testData = {
-      name: 'John Doe',
-      title: 'Software Engineer',
-      company: 'TechCorp',
-      email: 'john.doe@example.com',
-    };
+    // White background
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, 800, 600);
     
-    // Template fields from our actual template
-    const fields = [
-      {
-        id: 'field-1732711852736',
-        text: 'Name',
-        x: 166,
-        y: 221,
-        width: 613,
-        height: 125,
-        fontSize: 97,
-        fontFamily: 'Arial',
-        fill: '#000000',
-        fontStyle: '',
-        align: 'left' as const,
-        verticalAlign: 'top' as const,
-      },
-      {
-        id: 'field-1732711862050',
-        text: 'Title',
-        x: 166,
-        y: 389,
-        width: 261,
-        height: 44,
-        fontSize: 34,
-        fontFamily: 'Arial',
-        fill: '#000000',
-        fontStyle: '',
-        align: 'left' as const,
-        verticalAlign: 'top' as const,
-      },
-      {
-        id: 'field-1732711867377',
-        text: 'Company',
-        x: 549,
-        y: 390,
-        width: 237,
-        height: 42,
-        fontSize: 33,
-        fontFamily: 'Arial',
-        fill: '#000000',
-        fontStyle: '',
-        align: 'left' as const,
-        verticalAlign: 'top' as const,
-      },
-      {
-        id: 'field-1732711887185',
-        text: 'Email',
-        x: 165,
-        y: 464,
-        width: 617,
-        height: 43,
-        fontSize: 33,
-        fontFamily: 'Arial',
-        fill: '#000000',
-        fontStyle: '',
-        align: 'left' as const,
-        verticalAlign: 'top' as const,
-      },
-    ];
+    // Test rendering with Inter (regular)
+    ctx.fillStyle = '#000000';
+    ctx.font = '48px Inter';
+    ctx.fillText('Name: John Doe', 50, 100);
+    console.log('[TEST BADGE] Rendered regular text with Inter');
     
-    // Mappings
-    const mappings = {
-      'field-1732711852736': 'name',
-      'field-1732711862050': 'title',
-      'field-1732711867377': 'company',
-      'field-1732711887185': 'email',
-    };
+    // Test rendering with Inter Bold
+    ctx.font = '48px Inter Bold';
+    ctx.fillText('Title: Software Engineer', 50, 200);
+    console.log('[TEST BADGE] Rendered bold text with Inter Bold');
     
-    // Use the actual template URL from Blob Storage
-    const templateUrl = 'https://7hxlnnedz4sp1zmo.public.blob.vercel-storage.com/templates/cmihzfedr0001rynjum224ljh/the-real-test-WUQ5YaTxZTiCPZkCjcXeKFjGvNaOGe.png';
+    // Test with smaller text
+    ctx.font = '32px Inter';
+    ctx.fillText('Company: TechCorp', 50, 300);
+    console.log('[TEST BADGE] Rendered company text');
     
-    console.log('[TEST BADGE] Generating badge with test data...');
-    const badges = await generateBadges({
-      templateImageUrl: templateUrl,
-      templateWidth: 1004,
-      templateHeight: 649,
-      fields,
-      mappings,
-      dataRows: [testData],
-    });
+    ctx.font = '32px Inter';
+    ctx.fillText('Email: john.doe@example.com', 50, 400);
+    console.log('[TEST BADGE] Rendered email text');
     
-    console.log('[TEST BADGE] Badge generated, size:', badges[0].length, 'bytes');
+    // Add a note about the test
+    ctx.font = '24px Inter';
+    ctx.fillStyle = '#666666';
+    ctx.fillText('Test badge - Font fix verification', 50, 550);
     
-    // Return the badge as a PNG image
-    return new NextResponse(Buffer.from(badges[0]), {
+    // Encode to PNG
+    const pngBuffer = await canvas.encode('png');
+    console.log('[TEST BADGE] Badge generated successfully, size:', pngBuffer.length);
+    
+    // Return as PNG
+    return new NextResponse(pngBuffer as any, {
       headers: {
         'Content-Type': 'image/png',
-        'Content-Length': badges[0].length.toString(),
-        'Cache-Control': 'no-store',
+        'Content-Disposition': 'inline; filename="test-badge.png"',
       },
     });
   } catch (error: any) {
