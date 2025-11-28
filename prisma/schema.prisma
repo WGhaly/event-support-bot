@@ -68,6 +68,7 @@ model User {
   role          Role         @relation(fields: [roleId], references: [id])
   userModules   UserModule[]
   projects      Project[]
+  events        Event[]
   
   @@index([roleId])
   @@map("users")
@@ -165,4 +166,83 @@ model Export {
   @@index([projectId])
   @@index([fieldMappingId])
   @@map("exports")
+}
+
+// Event Registration Module Models
+model Event {
+  id                String              @id @default(cuid())
+  userId            String
+  name              String
+  slug              String              @unique // URL-friendly name for public registration
+  description       String?             @db.Text
+  logoUrl           String?
+  startDate         DateTime?
+  endDate           DateTime?
+  location          String?
+  maxAttendees      Int?
+  isPublished       Boolean             @default(false)
+  emailTemplate     String?             @db.Text // HTML email template
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  formFields        FormField[]
+  registrations     EventRegistration[]
+  
+  @@index([userId])
+  @@index([slug])
+  @@map("events")
+}
+
+model FormField {
+  id            String   @id @default(cuid())
+  eventId       String
+  label         String
+  fieldType     String   // 'email', 'phone', 'text', 'textarea', 'file', 'dropdown', 'checkbox', 'radio'
+  placeholder   String?
+  helpText      String?
+  isRequired    Boolean  @default(false)
+  options       String?  // JSON array for dropdown/checkbox/radio options
+  validation    String?  // JSON object for validation rules
+  order         Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  event         Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  
+  @@index([eventId])
+  @@map("form_fields")
+}
+
+model EventRegistration {
+  id                String              @id @default(cuid())
+  eventId           String
+  email             String
+  formData          String              @db.Text // JSON object with all form responses
+  status            String              @default("pending") // 'pending', 'accepted', 'rejected'
+  qrCode            String              @unique // Unique code for QR
+  inviteSent        Boolean             @default(false)
+  inviteSentAt      DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  event             Event               @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  attendance        EventAttendance[]
+  
+  @@index([eventId])
+  @@index([email])
+  @@index([qrCode])
+  @@map("event_registrations")
+}
+
+model EventAttendance {
+  id              String            @id @default(cuid())
+  registrationId  String
+  checkedInAt     DateTime          @default(now())
+  checkedInBy     String?           // User ID who scanned the QR
+  
+  registration    EventRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  
+  @@index([registrationId])
+  @@map("event_attendance")
 }

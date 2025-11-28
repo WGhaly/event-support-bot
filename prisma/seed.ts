@@ -95,17 +95,45 @@ async function main() {
     },
   })
 
+  const eventModule = await prisma.module.upsert({
+    where: { name: 'event-registration' },
+    update: {},
+    create: {
+      name: 'event-registration',
+      displayName: 'Event Registration',
+      description: 'Create events, build registration forms, and manage attendees',
+      icon: 'Calendar',
+      route: '/dashboard/modules/events',
+      isActive: true,
+      order: 2,
+    },
+  })
+
+  await prisma.module.upsert({
+    where: { name: 'attendee-management' },
+    update: { order: 3 },
+    create: {
+      name: 'attendee-management',
+      displayName: 'Attendee Management',
+      description: 'Manage event attendees, registrations, and check-ins',
+      icon: 'Users',
+      route: '/dashboard/modules/attendees',
+      isActive: false,
+      order: 3,
+    },
+  })
+
   await prisma.module.upsert({
     where: { name: 'schedule-management' },
-    update: {},
+    update: { order: 4 },
     create: {
       name: 'schedule-management',
       displayName: 'Schedule Management',
       description: 'Create event schedules, manage sessions and speakers',
-      icon: 'Calendar',
+      icon: 'CalendarDays',
       route: '/dashboard/modules/schedule',
-      isActive: false, // Not yet implemented
-      order: 3,
+      isActive: false,
+      order: 4,
     },
   })
 
@@ -139,6 +167,21 @@ async function main() {
     create: {
       userId: superAdmin.id,
       moduleId: badgeModule.id,
+      isEnabled: true,
+    },
+  })
+
+  await prisma.userModule.upsert({
+    where: {
+      userId_moduleId: {
+        userId: superAdmin.id,
+        moduleId: eventModule.id,
+      },
+    },
+    update: {},
+    create: {
+      userId: superAdmin.id,
+      moduleId: eventModule.id,
       isEnabled: true,
     },
   })
