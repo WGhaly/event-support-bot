@@ -29,12 +29,11 @@ export default async function SignupPage({
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
             <img 
-              src="/icons/Luuj Logo.png" 
+              src="/icons/LUUJ LOGO.png" 
               alt="Luuj" 
-              className="h-16 w-auto"
+              className="h-20 w-auto"
             />
           </div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent mb-2">Luuj</h1>
           <p className="text-xl font-semibold text-blue-900 mb-1">Get Started Free</p>
           <p className="mt-2 text-blue-700/70">Create your account in seconds</p>
         </div>
