@@ -21,7 +21,6 @@ export default async function DashboardLayout({
   }
 
   const isSuperAdmin = session.user?.role === 'super-admin';
-  const isAdmin = session.user?.role === 'admin' || isSuperAdmin;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50/30">

@@ -81,7 +81,7 @@ async function main() {
   })
 
   // Placeholder for future modules
-  const attendeeModule = await prisma.module.upsert({
+  await prisma.module.upsert({
     where: { name: 'attendee-management' },
     update: {},
     create: {
@@ -95,7 +95,7 @@ async function main() {
     },
   })
 
-  const scheduleModule = await prisma.module.upsert({
+  await prisma.module.upsert({
     where: { name: 'schedule-management' },
     update: {},
     create: {
