@@ -15,7 +15,7 @@ export default function HomePage() {
           duration: 0.8,
           ease: "easeInOut",
         }}
-        className="relative flex flex-col gap-4 items-center justify-center px-4"
+        className="relative flex flex-col gap-4 items-center justify-center px-4 py-16 md:py-24"
       >
         {/* Logo */}
         <div className="flex flex-col items-center gap-6">
@@ -100,7 +100,7 @@ export default function HomePage() {
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.1 }}
-          className="grid md:grid-cols-3 gap-6 mt-16 max-w-5xl w-full"
+          className="grid md:grid-cols-3 gap-6 mt-16 mb-16 max-w-5xl w-full"
         >
           <div className="bg-white/10 dark:bg-black/10 backdrop-blur-md rounded-2xl p-6 border border-neutral-200/50 dark:border-neutral-800/50 hover:scale-105 transition-transform">
             <div className="text-4xl mb-3">🤖</div>
