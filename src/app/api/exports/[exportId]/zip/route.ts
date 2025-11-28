@@ -45,29 +45,46 @@ export async function POST(
     }
 
     // Fetch manifest from Blob Storage
+    console.log('[ZIP API] Fetching manifest from:', exportRecord.exportUrl);
     const manifestResponse = await fetch(exportRecord.exportUrl);
     if (!manifestResponse.ok) {
       throw new Error('Failed to fetch manifest');
     }
     const manifest = await manifestResponse.json();
+    console.log('[ZIP API] Manifest loaded, badge count:', manifest.badges.length);
 
     // Create ZIP archive in memory
+    console.log('[ZIP API] Creating archive...');
     const archive = archiver('zip', {
       zlib: { level: 9 }, // Maximum compression
     });
 
     const chunks: Buffer[] = [];
+    let archiveFinished = false;
+    
+    // Set up promise to wait for archive completion BEFORE adding files
+    const archivePromise = new Promise<void>((resolve, reject) => {
+      archive.on('end', () => {
+        console.log('[ZIP API] Archive end event fired');
+        archiveFinished = true;
+        resolve();
+      });
+      
+      archive.on('error', (err: Error) => {
+        console.error('[ZIP API] Archive error:', err);
+        reject(err);
+      });
+    });
     
     archive.on('data', (chunk: Buffer) => {
       chunks.push(chunk);
     });
 
-    archive.on('error', (err: Error) => {
-      throw err;
-    });
-
     // Add each badge to the ZIP by fetching from blob storage
-    for (const badgeUrl of manifest.badges) {
+    console.log('[ZIP API] Adding badges to archive...');
+    for (let i = 0; i < manifest.badges.length; i++) {
+      const badgeUrl = manifest.badges[i];
+      console.log(`[ZIP API] Fetching badge ${i + 1}/${manifest.badges.length}:`, badgeUrl);
       const badgeResponse = await fetch(badgeUrl);
       if (!badgeResponse.ok) {
         throw new Error(`Failed to fetch badge: ${badgeUrl}`);
@@ -76,20 +93,23 @@ export async function POST(
       const badgeFilename = badgeUrl.split('/').pop() || 'badge.png';
       
       archive.append(badgeBuffer, { name: badgeFilename });
+      console.log(`[ZIP API] Added badge ${i + 1}: ${badgeFilename} (${badgeBuffer.length} bytes)`);
     }
 
     // Add manifest to ZIP
+    console.log('[ZIP API] Adding manifest.json...');
     archive.append(JSON.stringify(manifest, null, 2), { name: 'manifest.json' });
 
     // Finalize the archive
+    console.log('[ZIP API] Finalizing archive...');
     await archive.finalize();
 
-    // Wait for all data to be collected
-    await new Promise<void>((resolve) => {
-      archive.on('end', () => resolve());
-    });
+    // Wait for archive to complete
+    console.log('[ZIP API] Waiting for archive to complete...');
+    await archivePromise;
 
     const zipBuffer = Buffer.concat(chunks);
+    console.log('[ZIP API] ZIP created successfully, size:', zipBuffer.length, 'bytes');
 
     // Return ZIP as response
     return new NextResponse(zipBuffer, {
