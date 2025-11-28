@@ -23,22 +23,34 @@ export function ZipDownloadButton({ exportId, badgeCount }: ZipDownloadButtonPro
         method: 'POST',
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.error?.message || 'Failed to create ZIP');
+        // Try to parse error as JSON
+        const contentType = response.headers.get('content-type');
+        if (contentType?.includes('application/json')) {
+          const data = await response.json();
+          throw new Error(data.error?.message || 'Failed to create ZIP');
+        }
+        throw new Error('Failed to create ZIP');
       }
 
-      setZipUrl(data.data.zipUrl);
+      // Get ZIP blob from response
+      const blob = await response.blob();
+      
+      // Create temporary URL for the blob
+      const blobUrl = URL.createObjectURL(blob);
+      setZipUrl(blobUrl);
       setProgress('');
 
       // Auto-download
       const link = document.createElement('a');
-      link.href = data.data.zipUrl;
+      link.href = blobUrl;
       link.download = `badges-${exportId}.zip`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      
+      // Clean up blob URL after a delay
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
       setProgress('');
