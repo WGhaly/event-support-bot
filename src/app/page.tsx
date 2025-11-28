@@ -26,9 +26,14 @@ export default function HomePage() {
           />
         </div>
         
+        {/* Main Heading */}
+        <div className="text-3xl md:text-6xl font-bold dark:text-white text-center text-blue-950">
+          Your Super Employee
+        </div>
+        
         {/* Subheading */}
-        <div className="font-light text-lg md:text-3xl dark:text-blue-100 text-blue-900/80 py-4 text-center max-w-3xl">
-          Professional badge automation platform. Design templates, import data, and generate ID cards at scale.
+        <div className="font-light text-lg md:text-2xl dark:text-blue-100 text-blue-900/80 py-4 text-center max-w-3xl">
+          Automate your event management work with AI-powered assistance. From badge creation to attendee management, we handle it all.
         </div>
 
         {/* Feature Pills */}
@@ -39,7 +44,7 @@ export default function HomePage() {
             transition={{ delay: 0.5 }}
             className="px-4 py-2 bg-white/10 dark:bg-black/10 backdrop-blur-sm rounded-full border border-neutral-200 dark:border-neutral-800"
           >
-            <span className="text-sm font-medium dark:text-neutral-200 text-neutral-700">🎨 Design Templates</span>
+            <span className="text-sm font-medium dark:text-neutral-200 text-neutral-700">🎫 Badge Creation</span>
           </motion.div>
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
@@ -47,7 +52,7 @@ export default function HomePage() {
             transition={{ delay: 0.6 }}
             className="px-4 py-2 bg-white/10 dark:bg-black/10 backdrop-blur-sm rounded-full border border-neutral-200 dark:border-neutral-800"
           >
-            <span className="text-sm font-medium dark:text-neutral-200 text-neutral-700">📊 Import Data</span>
+            <span className="text-sm font-medium dark:text-neutral-200 text-neutral-700">👥 Attendee Management</span>
           </motion.div>
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
@@ -55,7 +60,7 @@ export default function HomePage() {
             transition={{ delay: 0.7 }}
             className="px-4 py-2 bg-white/10 dark:bg-black/10 backdrop-blur-sm rounded-full border border-neutral-200 dark:border-neutral-800"
           >
-            <span className="text-sm font-medium dark:text-neutral-200 text-neutral-700">⚡ Generate & Export</span>
+            <span className="text-sm font-medium dark:text-neutral-200 text-neutral-700">📅 Schedule Planning</span>
           </motion.div>
         </div>
 
@@ -87,7 +92,7 @@ export default function HomePage() {
           transition={{ delay: 1 }}
           className="mt-8 text-center text-sm text-neutral-600 dark:text-neutral-400"
         >
-          <p>✓ No credit card required  •  ✓ Free for up to 100 badges  •  ✓ Cancel anytime</p>
+          <p>✓ Works 24/7 without breaks  •  ✓ Never calls in sick  •  ✓ Scales with your events</p>
         </motion.div>
 
         {/* Feature Cards */}
@@ -98,21 +103,21 @@ export default function HomePage() {
           className="grid md:grid-cols-3 gap-6 mt-16 max-w-5xl w-full"
         >
           <div className="bg-white/10 dark:bg-black/10 backdrop-blur-md rounded-2xl p-6 border border-neutral-200/50 dark:border-neutral-800/50 hover:scale-105 transition-transform">
-            <div className="text-4xl mb-3">🎨</div>
-            <h3 className="font-semibold text-neutral-900 dark:text-neutral-100 mb-2 text-lg">Design Templates</h3>
-            <p className="text-sm text-neutral-600 dark:text-neutral-400">Upload your badge design and place fields visually with our intuitive editor</p>
-          </div>
-          
-          <div className="bg-white/10 dark:bg-black/10 backdrop-blur-md rounded-2xl p-6 border border-neutral-200/50 dark:border-neutral-800/50 hover:scale-105 transition-transform">
-            <div className="text-4xl mb-3">📊</div>
-            <h3 className="font-semibold text-neutral-900 dark:text-neutral-100 mb-2 text-lg">Import Data</h3>
-            <p className="text-sm text-neutral-600 dark:text-neutral-400">Upload CSV or Excel files with attendee information in seconds</p>
+            <div className="text-4xl mb-3">🤖</div>
+            <h3 className="font-semibold text-neutral-900 dark:text-neutral-100 mb-2 text-lg">Always Available</h3>
+            <p className="text-sm text-neutral-600 dark:text-neutral-400">Your tireless employee works around the clock, handling event tasks while you focus on what matters</p>
           </div>
           
           <div className="bg-white/10 dark:bg-black/10 backdrop-blur-md rounded-2xl p-6 border border-neutral-200/50 dark:border-neutral-800/50 hover:scale-105 transition-transform">
             <div className="text-4xl mb-3">⚡</div>
-            <h3 className="font-semibold text-neutral-900 dark:text-neutral-100 mb-2 text-lg">Generate & Export</h3>
-            <p className="text-sm text-neutral-600 dark:text-neutral-400">Create hundreds of badges in bulk and download as ZIP instantly</p>
+            <h3 className="font-semibold text-neutral-900 dark:text-neutral-100 mb-2 text-lg">Lightning Fast</h3>
+            <p className="text-sm text-neutral-600 dark:text-neutral-400">Complete hours of manual work in minutes. From badge creation to attendee tracking, instantly</p>
+          </div>
+          
+          <div className="bg-white/10 dark:bg-black/10 backdrop-blur-md rounded-2xl p-6 border border-neutral-200/50 dark:border-neutral-800/50 hover:scale-105 transition-transform">
+            <div className="text-4xl mb-3">📈</div>
+            <h3 className="font-semibold text-neutral-900 dark:text-neutral-100 mb-2 text-lg">Grows With You</h3>
+            <p className="text-sm text-neutral-600 dark:text-neutral-400">Handle 10 attendees or 10,000 with the same ease. Your super employee scales effortlessly</p>
           </div>
         </motion.div>
       </motion.div>
