@@ -20,7 +20,7 @@ export default function HomePage() {
         {/* Logo */}
         <div className="flex flex-col items-center gap-6">
           <img 
-            src="/icons/LUUJ LOGO.png" 
+            src="/icons/luuj-logo.png" 
             alt="Luuj Logo" 
             className="h-32 md:h-48 w-auto"
           />

@@ -41,7 +41,7 @@ export default async function LoginPage({
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
             <img 
-              src="/icons/LUUJ LOGO.png" 
+              src="/icons/luuj-logo.png" 
               alt="Luuj" 
               className="h-20 w-auto"
             />

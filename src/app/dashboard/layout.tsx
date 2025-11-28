@@ -32,7 +32,7 @@ export default async function DashboardLayout({
                 className="hover:opacity-80 transition"
               >
                 <img 
-                  src="/icons/LUUJ LOGO.png" 
+                  src="/icons/luuj-logo.png" 
                   alt="Luuj" 
                   className="h-12 w-auto"
                 />
