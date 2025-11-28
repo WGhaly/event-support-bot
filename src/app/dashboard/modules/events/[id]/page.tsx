@@ -16,15 +16,16 @@ import {
 export default async function EventDetailsPage({
   params,
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
   const session = await auth()
   if (!session?.user?.id) {
     redirect('/auth/login')
   }
 
+  const { id } = await params
   const event = await prisma.event.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       _count: {
         select: {

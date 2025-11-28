@@ -7,15 +7,16 @@ import { ArrowLeft, Mail } from 'lucide-react'
 export default async function EmailTemplatePage({
   params,
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
   const session = await auth()
   if (!session?.user?.id) {
     redirect('/auth/login')
   }
 
+  const { id } = await params
   const event = await prisma.event.findUnique({
-    where: { id: params.id },
+    where: { id },
   })
 
   if (!event || event.userId !== session.user.id) {
