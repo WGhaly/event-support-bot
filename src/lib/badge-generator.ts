@@ -1,26 +1,26 @@
-import { createCanvas, loadImage, GlobalFonts } from '@napi-rs/canvas';
+import { createCanvas, loadImage, registerFont } from 'canvas';
 import path from 'path';
 import fs from 'fs';
 
 let fontsInitialized = false;
+let registeredFonts: string[] = [];
 
 /**
  * Initialize and register fonts for canvas text rendering
  * Must be called before generating badges
  */
 export function initializeFonts(): { success: boolean; fontsRegistered: number; error?: string } {
-  // Check if fonts are actually registered, not just if we tried before
-  const currentFontCount = GlobalFonts.families.length;
-  console.log(`[FONT INIT] Current GlobalFonts.families.length: ${currentFontCount}`);
+  // Check if fonts are actually registered
   console.log(`[FONT INIT] fontsInitialized flag: ${fontsInitialized}`);
+  console.log(`[FONT INIT] registeredFonts:`, registeredFonts);
   
-  if (fontsInitialized && currentFontCount >= 2) {
+  if (fontsInitialized && registeredFonts.length >= 2) {
     console.log(`[FONT INIT] Fonts already initialized, returning success`);
-    return { success: true, fontsRegistered: currentFontCount };
+    return { success: true, fontsRegistered: registeredFonts.length };
   }
   
   // If flag is true but no fonts registered, something went wrong - reinitialize
-  if (fontsInitialized && currentFontCount === 0) {
+  if (fontsInitialized && registeredFonts.length === 0) {
     console.log(`[FONT INIT] WARNING: fontsInitialized=true but no fonts registered! Reinitializing...`);
     fontsInitialized = false;
   }
@@ -57,13 +57,13 @@ export function initializeFonts(): { success: boolean; fontsRegistered: number; 
       return { success: false, fontsRegistered: 0, error };
     }
     
-    // Register bundled Inter fonts
+    // Register bundled Inter fonts using canvas's registerFont
     const bundledFonts = [
-      { path: path.join(fontsDir, 'Inter-Regular.ttf'), family: 'Inter' },
-      { path: path.join(fontsDir, 'Inter-Bold.ttf'), family: 'Inter Bold' },
+      { path: path.join(fontsDir, 'Inter-Regular.ttf'), family: 'Inter', weight: 'normal' },
+      { path: path.join(fontsDir, 'Inter-Bold.ttf'), family: 'Inter', weight: 'bold' },
     ];
 
-    let fontsRegistered = 0;
+    let fontsReg = 0;
     const errors: string[] = [];
     
     for (const font of bundledFonts) {
@@ -72,9 +72,11 @@ export function initializeFonts(): { success: boolean; fontsRegistered: number; 
         console.log(`[FONT INIT] Font file ${font.path} exists: ${exists}`);
         
         if (exists) {
-          GlobalFonts.registerFromPath(font.path, font.family);
-          fontsRegistered++;
-          console.log(`[FONT INIT] ✓ Registered font: ${font.family} from ${font.path}`);
+          // node-canvas registerFont API
+          registerFont(font.path, { family: font.family, weight: font.weight as any });
+          registeredFonts.push(`${font.family} ${font.weight}`);
+          fontsReg++;
+          console.log(`[FONT INIT] ✓ Registered font: ${font.family} (${font.weight}) from ${font.path}`);
         } else {
           errors.push(`Font file not found: ${font.path}`);
         }
@@ -85,27 +87,16 @@ export function initializeFonts(): { success: boolean; fontsRegistered: number; 
       }
     }
 
-    if (fontsRegistered === 0) {
+    if (fontsReg === 0) {
       const error = '[FONT INIT] ⚠️ WARNING: No fonts were registered! Text rendering will fail. ' + errors.join('; ');
       console.error(error);
-      console.error('[FONT INIT] Available fonts:', GlobalFonts.families);
       return { success: false, fontsRegistered: 0, error };
     } else {
-      console.log(`[FONT INIT] ✓ Successfully registered ${fontsRegistered} font(s)`);
-      console.log('[FONT INIT] Available fonts:', GlobalFonts.families);
-      
-      // Double-check that GlobalFonts actually has the fonts
-      const actualCount = GlobalFonts.families.length;
-      console.log(`[FONT INIT] Double-check: GlobalFonts.families.length = ${actualCount}`);
-      
-      if (actualCount === 0) {
-        const error = '[FONT INIT] ⚠️ CRITICAL: registerFromPath() succeeded but GlobalFonts.families is empty!';
-        console.error(error);
-        return { success: false, fontsRegistered: 0, error };
-      }
+      console.log(`[FONT INIT] ✓ Successfully registered ${fontsReg} font(s)`);
+      console.log('[FONT INIT] Registered fonts:', registeredFonts);
       
       fontsInitialized = true;
-      return { success: true, fontsRegistered: actualCount };
+      return { success: true, fontsRegistered: fontsReg };
     }
   } catch (e: any) {
     const error = '[FONT INIT] ⚠️ CRITICAL: Font registration failed: ' + e.message;
@@ -119,9 +110,10 @@ initializeFonts();
 
 /**
  * Map common font families to available bundled fonts
- * Returns the appropriate registered font family name
+ * With node-canvas, we register Inter with different weights,
+ * so we just return 'Inter' and let CSS handle bold/normal
  */
-function normalizeFontFamily(fontFamily: string, isBold: boolean = false): string {
+function normalizeFontFamily(fontFamily: string): string {
   const normalized = fontFamily.toLowerCase();
   
   // Map common system fonts to Inter
@@ -136,11 +128,8 @@ function normalizeFontFamily(fontFamily: string, isBold: boolean = false): strin
     'inter': 'Inter',
   };
   
-  const baseFont = fontMap[normalized] || 'Inter';
-  
-  // If bold is requested, use the 'Inter Bold' registered font family
-  // @napi-rs/canvas requires exact family names, not CSS-style modifiers
-  return isBold && baseFont === 'Inter' ? 'Inter Bold' : baseFont;
+  // Just return the base font - node-canvas handles weight separately
+  return fontMap[normalized] || 'Inter';
 }
 
 export interface TemplateField {
@@ -215,8 +204,8 @@ export async function generateBadges(
 
   // Log registered fonts at start of badge generation
   console.log('[BADGE GEN] ========== Starting Badge Generation ==========');
-  console.log('[BADGE GEN] Registered fonts:', GlobalFonts.families);
-  console.log('[BADGE GEN] Font count:', GlobalFonts.families.length);
+  console.log('[BADGE GEN] Registered fonts:', registeredFonts);
+  console.log('[BADGE GEN] Font count:', registeredFonts.length);
   console.log('[BADGE GEN] Template size:', templateWidth, 'x', templateHeight);
   console.log('[BADGE GEN] Fields to process:', fields.length);
   console.log('[BADGE GEN] Data rows:', dataRows.length);
@@ -259,7 +248,7 @@ export async function generateBadges(
       // Calculate optimal font size to fit text within field dimensions
       const fontStyle = field.fontStyle || '';
       const isBold = fontStyle.toLowerCase().includes('bold');
-      const normalizedFont = normalizeFontFamily(field.fontFamily, isBold);
+      const normalizedFont = normalizeFontFamily(field.fontFamily);
       let optimalFontSize = field.fontSize;
       
       console.log(`[BADGE GEN] Field config: font="${field.fontFamily}", style="${fontStyle}", isBold=${isBold}, normalized="${normalizedFont}", size=${optimalFontSize}`);
@@ -271,10 +260,8 @@ export async function generateBadges(
         
         while (minSize <= maxSize) {
           const mid = Math.floor((minSize + maxSize) / 2);
-          // Use normalized font directly (already includes Bold if needed)
-          // Don't add fontStyle modifier as it conflicts with registered font names
-          const fontStyleWithoutBold = isBold ? fontStyle.replace(/bold/gi, '').trim() : fontStyle;
-          ctx.font = `${fontStyleWithoutBold} ${mid}px ${normalizedFont}`.trim();
+          // node-canvas handles 'bold' style correctly
+          ctx.font = `${fontStyle} ${mid}px ${normalizedFont}`;
           
           // Wrap text and measure total height
           const lines = wrapText(ctx, text, field.width);
@@ -321,7 +308,7 @@ export async function generateBadges(
       console.log(`[BADGE GEN] Alignment: ${field.align || 'left'}, Vertical: ${field.verticalAlign || 'top'}`);
       console.log(`[BADGE GEN] Line height: ${lineHeight}, Total height: ${totalTextHeight}`);
       console.log(`[BADGE GEN] Vertical offset: ${verticalOffset}`);
-      console.log(`[BADGE GEN] Available fonts before render:`, GlobalFonts.families);
+      console.log(`[BADGE GEN] Available fonts before render:`, registeredFonts);
 
       // Apply rotation if specified
       if (field.rotation) {
@@ -363,8 +350,8 @@ export async function generateBadges(
       }
     }
 
-    // Encode to PNG
-    const pngBuffer = await canvas.encode('png');
+    // Encode to PNG (node-canvas uses toBuffer instead of encode)
+    const pngBuffer = canvas.toBuffer('image/png');
     badges.push(pngBuffer);
 
     // Report progress
