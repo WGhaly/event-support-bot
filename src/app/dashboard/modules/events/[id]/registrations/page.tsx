@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { ArrowLeft, Users } from 'lucide-react'
+import RegistrationActions from './RegistrationActions'
 
 export default async function RegistrationsPage({
   params,
@@ -20,6 +21,13 @@ export default async function RegistrationsPage({
     include: {
       registrations: {
         orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          email: true,
+          status: true,
+          createdAt: true,
+          inviteSent: true,
+        },
       },
     },
   })
@@ -55,46 +63,7 @@ export default async function RegistrationsPage({
             </p>
           </div>
         ) : (
-          <div className="border rounded-lg overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-muted">
-                <tr>
-                  <th className="px-4 py-3 text-left text-sm font-medium">Email</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium">Registered</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {event.registrations.map((registration) => (
-                  <tr key={registration.id}>
-                    <td className="px-4 py-3">{registration.email}</td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                          registration.status === 'accepted'
-                            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                            : registration.status === 'rejected'
-                            ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-                            : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
-                        }`}
-                      >
-                        {registration.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-muted-foreground">
-                      {new Date(registration.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="px-4 py-3">
-                      <button className="text-sm text-primary hover:underline">
-                        View Details
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <RegistrationActions registrations={event.registrations} eventId={event.id} />
         )}
       </div>
     </div>

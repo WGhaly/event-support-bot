@@ -2,7 +2,8 @@ import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
-import { ArrowLeft, Mail } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
+import EmailTemplateEditor from './EmailTemplateEditor'
 
 export default async function EmailTemplatePage({
   params,
@@ -24,30 +25,25 @@ export default async function EmailTemplatePage({
   }
 
   return (
-    <div className="p-8">
-      <div className="max-w-7xl mx-auto">
-        <Link
-          href={`/dashboard/modules/events/${event.id}`}
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Event
-        </Link>
-
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Email Template Builder</h1>
-          <p className="text-muted-foreground">
-            Customize invitation emails for {event.name}
-          </p>
+    <div className="h-screen flex flex-col">
+      <div className="border-b p-4">
+        <div className="max-w-7xl mx-auto">
+          <Link
+            href={`/dashboard/modules/events/${event.id}`}
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Event
+          </Link>
+          <h1 className="text-2xl font-bold">Email Template - {event.name}</h1>
         </div>
-
-        <div className="text-center py-16 border-2 border-dashed rounded-lg">
-          <Mail className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="text-xl font-semibold mb-2">Email Builder Coming Soon</h3>
-          <p className="text-muted-foreground">
-            The canvas-like email template builder will be available shortly
-          </p>
-        </div>
+      </div>
+      
+      <div className="flex-1 overflow-hidden">
+        <EmailTemplateEditor 
+          eventId={event.id} 
+          initialTemplate={event.emailTemplate || undefined}
+        />
       </div>
     </div>
   )
