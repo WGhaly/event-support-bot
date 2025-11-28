@@ -6,21 +6,69 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique  // 'super-admin', 'admin', 'user'
+  displayName String
+  description String?
+  permissions String   @default("{}") // JSON string: Flexible permissions object
+  users       User[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("roles")
+}
+
+model Module {
+  id          String       @id @default(cuid())
+  name        String       @unique  // 'badge-creation', 'attendee-management', etc.
+  displayName String       // 'Badge Creation', 'Attendee Management'
+  description String?
+  icon        String?      // Icon identifier (lucide icon name)
+  route       String       // '/dashboard/modules/badges'
+  isActive    Boolean      @default(true)  // Global on/off
+  order       Int          @default(0)     // Display order
+  userModules UserModule[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  
+  @@map("modules")
+}
+
+model UserModule {
+  id        String   @id @default(cuid())
+  userId    String
+  moduleId  String
+  isEnabled Boolean  @default(true)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  module    Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  
+  @@unique([userId, moduleId])
+  @@index([userId])
+  @@index([moduleId])
+  @@map("user_modules")
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
+  id            String       @id @default(cuid())
+  email         String       @unique
   passwordHash  String
   name          String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  roleId        String       @default("user")  // Foreign key to Role
+  isActive      Boolean      @default(true)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
   
+  role          Role         @relation(fields: [roleId], references: [id])
+  userModules   UserModule[]
   projects      Project[]
   
+  @@index([roleId])
   @@map("users")
 }
 

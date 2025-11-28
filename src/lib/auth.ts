@@ -23,10 +23,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
           const user = await prisma.user.findUnique({
             where: { email },
+            include: {
+              role: true,
+            },
           })
 
           if (!user) {
             console.log('❌ User not found:', email)
+            return null
+          }
+
+          if (!user.isActive) {
+            console.log('❌ User account is disabled:', email)
             return null
           }
 
@@ -37,11 +45,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             return null
           }
 
-          console.log('✅ Auth successful for:', user.email)
+          console.log('✅ Auth successful for:', user.email, 'Role:', user.role.name)
           return {
             id: user.id,
             email: user.email,
             name: user.name,
+            role: user.role.name,
+            roleId: user.roleId,
           }
         } catch (error) {
           console.error('Auth error:', error)
@@ -58,12 +68,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id
+        token.role = user.role
+        token.roleId = user.roleId
       }
       return token
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string
+        session.user.role = token.role as string
+        session.user.roleId = token.roleId as string
       }
       return session
     },
