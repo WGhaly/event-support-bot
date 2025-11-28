@@ -107,7 +107,7 @@ export default function NewTemplatePage({ params }: { params: Promise<{ id: stri
       }
 
       // Redirect to project page
-      router.push(`/dashboard/projects/${projectId}`);
+      router.push(`/dashboard/modules/badges/projects/${projectId}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
       setUploading(false);
@@ -123,7 +123,7 @@ export default function NewTemplatePage({ params }: { params: Promise<{ id: stri
           </Link>
           <span>/</span>
           <Link
-            href={`/dashboard/projects/${projectId}`}
+            href={`/dashboard/modules/badges/projects/${projectId}`}
             className="hover:text-gray-900 transition"
           >
             Project
@@ -247,7 +247,7 @@ export default function NewTemplatePage({ params }: { params: Promise<{ id: stri
         {/* Actions */}
         <div className="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
           <Link
-            href={`/dashboard/projects/${projectId}`}
+            href={`/dashboard/modules/badges/projects/${projectId}`}
             className="px-6 py-2 text-gray-700 font-semibold hover:text-gray-900 transition"
           >
             Cancel

@@ -114,7 +114,7 @@ export default function NewExportPage({
             </h1>
             <p className="text-red-700 mb-6">{error}</p>
             <Link
-              href={`/dashboard/projects/${projectId}`}
+              href={`/dashboard/modules/badges/projects/${projectId}`}
               className="inline-block px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
             >
               Back to Project
@@ -218,7 +218,7 @@ export default function NewExportPage({
                   View Manifest
                 </a>
                 <Link
-                  href={`/dashboard/projects/${projectId}/exports/${exportStatus.id}`}
+                  href={`/dashboard/modules/badges/projects/${projectId}/exports/${exportStatus.id}`}
                   className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                 >
                   View Export Details
@@ -248,7 +248,7 @@ export default function NewExportPage({
           {/* Actions */}
           <div className="flex gap-4">
             <Link
-              href={`/dashboard/projects/${projectId}`}
+              href={`/dashboard/modules/badges/projects/${projectId}`}
               className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
             >
               Back to Project
@@ -260,7 +260,7 @@ export default function NewExportPage({
                     await fetch(`/api/exports/${exportStatus.id}`, {
                       method: 'DELETE',
                     });
-                    router.push(`/dashboard/projects/${projectId}`);
+                    router.push(`/dashboard/modules/badges/projects/${projectId}`);
                   }
                 }}
                 className="px-4 py-2 text-red-600 hover:text-red-700"

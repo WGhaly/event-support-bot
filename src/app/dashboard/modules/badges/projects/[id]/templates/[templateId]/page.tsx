@@ -230,7 +230,7 @@ export default function TemplateEditorPage({ params }: { params: Promise<{ id: s
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <p className="text-red-600 mb-4">Failed to load template</p>
-          <Link href={`/dashboard/projects/${projectId}`} className="text-blue-600 hover:underline">
+          <Link href={`/dashboard/modules/badges/projects/${projectId}`} className="text-blue-600 hover:underline">
             Back to project
           </Link>
         </div>
@@ -245,7 +245,7 @@ export default function TemplateEditorPage({ params }: { params: Promise<{ id: s
         <div className="flex items-center justify-between max-w-screen-2xl mx-auto">
           <div className="flex items-center space-x-4">
             <Link
-              href={`/dashboard/projects/${projectId}`}
+              href={`/dashboard/modules/badges/projects/${projectId}`}
               className="text-gray-600 hover:text-gray-900"
             >
               ← Back

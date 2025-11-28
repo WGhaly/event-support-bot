@@ -145,7 +145,7 @@ export default function NewDatasetPage({ params }: { params: Promise<{ id: strin
       const data = await response.json();
 
       if (data.success) {
-        router.push(`/dashboard/projects/${projectId}`);
+        router.push(`/dashboard/modules/badges/projects/${projectId}`);
       } else {
         setError(data.error?.userMessage || 'Failed to upload dataset');
       }
@@ -163,7 +163,7 @@ export default function NewDatasetPage({ params }: { params: Promise<{ id: strin
         {/* Header */}
         <div className="mb-8">
           <Link
-            href={`/dashboard/projects/${projectId}`}
+            href={`/dashboard/modules/badges/projects/${projectId}`}
             className="text-blue-600 hover:text-blue-700 mb-4 inline-block"
           >
             ← Back to project
@@ -325,7 +325,7 @@ export default function NewDatasetPage({ params }: { params: Promise<{ id: strin
           {/* Submit Button */}
             <div className="flex items-center justify-end space-x-4">
               <Link
-                href={`/dashboard/projects/${projectId}`}
+                href={`/dashboard/modules/badges/projects/${projectId}`}
                 className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition"
             >
               Cancel

@@ -1,30 +1,43 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+import { auth } from '@/lib/auth'
 
-export function middleware(request: NextRequest) {
-  const response = NextResponse.next();
-  
-  // If there's a JWT error cookie, clear all auth cookies
-  const authCookie = request.cookies.get('authjs.session-token') || 
-                     request.cookies.get('__Secure-authjs.session-token');
-  
-  // For auth pages, if there's an old cookie that might cause issues,
-  // clear it by setting it to expire
-  if (request.nextUrl.pathname.startsWith('/auth/') && authCookie) {
-    response.cookies.set('authjs.session-token', '', { 
-      maxAge: 0,
-      path: '/' 
-    });
-    response.cookies.set('__Secure-authjs.session-token', '', { 
-      maxAge: 0,
-      path: '/',
-      secure: true 
-    });
+export async function middleware(request: NextRequest) {
+  const pathname = request.nextUrl.pathname
+
+  // Public routes - allow access
+  const publicRoutes = ['/', '/auth/login', '/auth/signup', '/auth/error']
+  if (publicRoutes.includes(pathname)) {
+    return NextResponse.next()
   }
-  
-  return response;
+
+  // Get session
+  const session = await auth()
+
+  // Protected routes - require authentication
+  if (!session?.user) {
+    return NextResponse.redirect(new URL('/auth/login', request.url))
+  }
+
+  // Super Admin routes - require super-admin role
+  if (pathname.startsWith('/super-admin')) {
+    if (session.user.role !== 'super-admin') {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+  }
+
+  // Admin routes - require admin or super-admin role
+  if (pathname.startsWith('/admin')) {
+    if (!['admin', 'super-admin'].includes(session.user.role)) {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+  }
+
+  return NextResponse.next()
 }
 
 export const config = {
-  matcher: ['/auth/:path*'],
-};
+  matcher: [
+    '/((?!api|_next/static|_next/image|favicon.ico|icons|images).*)',
+  ],
+}

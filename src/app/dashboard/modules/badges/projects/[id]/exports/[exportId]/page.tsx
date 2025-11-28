@@ -104,7 +104,7 @@ export default async function ExportDetailPage({
         {/* Header */}
         <div className="mb-6">
           <Link
-            href={`/dashboard/projects/${projectId}`}
+            href={`/dashboard/modules/badges/projects/${projectId}`}
             className="text-sm text-blue-600 hover:text-blue-700 mb-2 inline-block"
           >
             ← Back to Project
