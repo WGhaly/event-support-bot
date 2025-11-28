@@ -20,6 +20,9 @@ export async function POST(req: NextRequest) {
       password: formData.get('password') as string,
     };
 
+    // Get selected modules
+    const selectedModules = formData.getAll('modules') as string[];
+
     // Validate input
     const validated = signupSchema.safeParse(data);
     if (!validated.success) {
@@ -68,7 +71,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Create user with role
-    await prisma.user.create({
+    const newUser = await prisma.user.create({
       data: {
         name,
         email,
@@ -76,6 +79,16 @@ export async function POST(req: NextRequest) {
         roleId: userRole.id,
       },
     });
+
+    // Assign selected modules to user
+    if (selectedModules.length > 0) {
+      await prisma.userModule.createMany({
+        data: selectedModules.map((moduleId) => ({
+          userId: newUser.id,
+          moduleId,
+        })),
+      });
+    }
 
     // Redirect to login with success message
     return NextResponse.redirect(

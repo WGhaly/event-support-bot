@@ -45,6 +45,12 @@ export default async function DashboardLayout({
               >
                 Modules
               </Link>
+              <Link
+                href="/dashboard/settings"
+                className="text-blue-700 hover:text-blue-800 transition font-medium"
+              >
+                Settings
+              </Link>
               {isSuperAdmin && (
                 <Link
                   href="/super-admin"

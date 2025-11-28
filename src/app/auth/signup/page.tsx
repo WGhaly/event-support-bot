@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
+import { prisma } from '@/lib/db';
 
 export const metadata = {
   title: 'Sign Up | Luuj',
@@ -22,6 +23,12 @@ export default async function SignupPage({
   const errorMessage = params.error
     ? decodeURIComponent(params.error)
     : null;
+
+  // Get all active modules for selection
+  const modules = await prisma.module.findMany({
+    where: { isActive: true },
+    orderBy: { order: 'asc' },
+  });
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-100 px-4">
@@ -101,6 +108,39 @@ export default async function SignupPage({
             />
             <p className="mt-1 text-xs text-blue-600/60">
               Must be at least 6 characters long
+            </p>
+          </div>
+
+          {/* Module Selection */}
+          <div>
+            <label className="block text-sm font-medium text-blue-900 mb-3">
+              Select Modules to Activate
+            </label>
+            <div className="space-y-2">
+              {modules.map((module) => (
+                <label
+                  key={module.id}
+                  className="flex items-start p-3 bg-blue-50/50 rounded-lg border-2 border-blue-100 hover:border-blue-300 transition-all cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    name="modules"
+                    value={module.id}
+                    defaultChecked
+                    className="mt-1 h-4 w-4 text-blue-600 border-blue-300 rounded focus:ring-blue-500"
+                  />
+                  <div className="ml-3 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">{module.icon}</span>
+                      <span className="font-medium text-blue-900">{module.displayName}</span>
+                    </div>
+                    <p className="text-xs text-blue-600/70 mt-1">{module.description}</p>
+                  </div>
+                </label>
+              ))}
+            </div>
+            <p className="mt-2 text-xs text-blue-600/60">
+              You can change these later in your account settings
             </p>
           </div>
 
