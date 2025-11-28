@@ -26,7 +26,7 @@ async function main() {
     },
   })
 
-  const adminRole = await prisma.role.upsert({
+  await prisma.role.upsert({
     where: { name: 'admin' },
     update: {},
     create: {
