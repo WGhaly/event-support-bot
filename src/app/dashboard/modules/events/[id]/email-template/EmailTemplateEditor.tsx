@@ -1,27 +1,33 @@
 'use client'
 
-import { useState } from 'react'
-import { Mail, Eye, Code, Save, Wand2 } from 'lucide-react'
+import { useState, useRef } from 'react'
+import { Mail, Eye, Code, Save, Wand2, Upload, X } from 'lucide-react'
 
 type TemplateBlock = {
   id: string
-  type: 'text' | 'image' | 'button' | 'qrcode'
+  type: 'text' | 'image' | 'button' | 'qrcode' | 'logo'
   content: string
+  imageUrl?: string // For uploaded images
+  buttonUrl?: string // For button links
   styles?: Record<string, string>
 }
 
 export default function EmailTemplateEditor({
   eventId,
   initialTemplate,
+  eventLogoUrl,
 }: {
   eventId: string
   initialTemplate?: string
+  eventLogoUrl?: string | null
 }) {
   const [blocks, setBlocks] = useState<TemplateBlock[]>([])
   const [showPreview, setShowPreview] = useState(false)
   const [showCode, setShowCode] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [customHtml, setCustomHtml] = useState(initialTemplate || '')
+  const [uploadingImages, setUploadingImages] = useState<Set<string>>(new Set())
+  const fileInputRefs = useRef<Map<string, HTMLInputElement>>(new Map())
 
   const addBlock = (type: TemplateBlock['type']) => {
     const newBlock: TemplateBlock = {
@@ -39,8 +45,54 @@ export default function EmailTemplateEditor({
     ))
   }
 
+  const updateBlockUrl = (id: string, buttonUrl: string) => {
+    setBlocks(blocks.map(block => 
+      block.id === id ? { ...block, buttonUrl } : block
+    ))
+  }
+
   const deleteBlock = (id: string) => {
     setBlocks(blocks.filter(block => block.id !== id))
+  }
+
+  const handleImageUpload = async (blockId: string, file: File) => {
+    setUploadingImages(prev => new Set(prev).add(blockId))
+    
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await fetch('/api/events/logo', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to upload image')
+      }
+
+      const { url } = await response.json()
+      
+      setBlocks(blocks.map(block => 
+        block.id === blockId ? { ...block, imageUrl: url, content: url } : block
+      ))
+    } catch (error) {
+      alert('Failed to upload image. Please try again.')
+    } finally {
+      setUploadingImages(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(blockId)
+        return newSet
+      })
+    }
+  }
+
+  const clearImage = (blockId: string) => {
+    setBlocks(blocks.map(block => 
+      block.id === blockId ? { ...block, imageUrl: undefined, content: '' } : block
+    ))
+    const input = fileInputRefs.current.get(blockId)
+    if (input) input.value = ''
   }
 
   const generateHtml = () => {
@@ -64,16 +116,24 @@ export default function EmailTemplateEditor({
     blocks.forEach(block => {
       switch (block.type) {
         case 'text':
-          html += `              <p style="margin: 0 0 20px 0; font-size: 16px; color: #333333;">${block.content}</p>\n`
+          html += `              <p style="margin: 0 0 20px 0; font-size: 16px; color: #333333; text-align: center;">${block.content}</p>\n`
+          break
+        case 'logo':
+          const logoUrl = block.imageUrl || eventLogoUrl || 'https://via.placeholder.com/200x80?text=Logo'
+          html += `              <div style="text-align: center; margin: 20px 0 30px 0;">
+                <img src="${logoUrl}" alt="Event Logo" style="max-width: 200px; height: auto;" />
+              </div>\n`
           break
         case 'image':
+          const imgUrl = block.imageUrl || block.content || 'https://via.placeholder.com/600x300'
           html += `              <div style="text-align: center; margin: 20px 0;">
-                <img src="${block.content}" alt="Image" style="max-width: 100%; height: auto;" />
+                <img src="${imgUrl}" alt="Image" style="max-width: 100%; height: auto;" />
               </div>\n`
           break
         case 'button':
+          const buttonUrl = block.buttonUrl || '#'
           html += `              <div style="text-align: center; margin: 20px 0;">
-                <a href="#" style="display: inline-block; padding: 14px 30px; background-color: #667eea; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: bold;">
+                <a href="${buttonUrl}" style="display: inline-block; padding: 14px 30px; background-color: #667eea; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: bold;">
                   ${block.content}
                 </a>
               </div>\n`
@@ -81,7 +141,7 @@ export default function EmailTemplateEditor({
         case 'qrcode':
           html += `              <div style="text-align: center; margin: 30px 0;">
                 <div style="display: inline-block; padding: 20px; background-color: #ffffff; border: 2px solid #e0e0e0; border-radius: 8px;">
-                  <img src="{qrCodeUrl}" alt="Your QR Code" style="width: 200px; height: 200px; display: block;" />
+                  <img src="{qrCodeUrl}" alt="Your QR Code" style="width: 200px; height: 200px; display: block; margin: 0 auto;" />
                 </div>
               </div>\n`
           break
@@ -238,6 +298,119 @@ export default function EmailTemplateEditor({
                               QR Code will be inserted here automatically
                             </p>
                           </div>
+                        ) : block.type === 'logo' ? (
+                          <div className="space-y-3">
+                            {block.imageUrl ? (
+                              <div className="relative inline-block">
+                                <img
+                                  src={block.imageUrl}
+                                  alt="Logo"
+                                  className="max-w-[200px] h-auto border rounded"
+                                />
+                                <button
+                                  onClick={() => clearImage(block.id)}
+                                  className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </div>
+                            ) : eventLogoUrl ? (
+                              <div>
+                                <div className="relative inline-block mb-2">
+                                  <img
+                                    src={eventLogoUrl}
+                                    alt="Event Logo"
+                                    className="max-w-[200px] h-auto border rounded"
+                                  />
+                                </div>
+                                <p className="text-sm text-muted-foreground">Using event logo (you can upload a different one)</p>
+                              </div>
+                            ) : (
+                              <p className="text-sm text-muted-foreground">No logo available. Upload one below.</p>
+                            )}
+                            <div>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                ref={(el) => {
+                                  if (el) fileInputRefs.current.set(block.id, el)
+                                }}
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0]
+                                  if (file) handleImageUpload(block.id, file)
+                                }}
+                                className="hidden"
+                                id={`logo-${block.id}`}
+                              />
+                              <button
+                                onClick={() => document.getElementById(`logo-${block.id}`)?.click()}
+                                disabled={uploadingImages.has(block.id)}
+                                className="px-4 py-2 border border-dashed rounded-lg hover:bg-muted flex items-center gap-2 disabled:opacity-50"
+                              >
+                                <Upload className="w-4 h-4" />
+                                {uploadingImages.has(block.id) ? 'Uploading...' : block.imageUrl ? 'Change Logo' : 'Upload Logo'}
+                              </button>
+                            </div>
+                          </div>
+                        ) : block.type === 'image' ? (
+                          <div className="space-y-3">
+                            {block.imageUrl && (
+                              <div className="relative inline-block">
+                                <img
+                                  src={block.imageUrl}
+                                  alt="Uploaded"
+                                  className="max-w-full h-auto border rounded"
+                                />
+                                <button
+                                  onClick={() => clearImage(block.id)}
+                                  className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </div>
+                            )}
+                            <div>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                ref={(el) => {
+                                  if (el) fileInputRefs.current.set(block.id, el)
+                                }}
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0]
+                                  if (file) handleImageUpload(block.id, file)
+                                }}
+                                className="hidden"
+                                id={`image-${block.id}`}
+                              />
+                              <button
+                                onClick={() => document.getElementById(`image-${block.id}`)?.click()}
+                                disabled={uploadingImages.has(block.id)}
+                                className="px-4 py-2 border border-dashed rounded-lg hover:bg-muted flex items-center gap-2 disabled:opacity-50"
+                              >
+                                <Upload className="w-4 h-4" />
+                                {uploadingImages.has(block.id) ? 'Uploading...' : block.imageUrl ? 'Change Image' : 'Upload Image'}
+                              </button>
+                              <p className="text-xs text-muted-foreground mt-1">Recommended: Max 5MB</p>
+                            </div>
+                          </div>
+                        ) : block.type === 'button' ? (
+                          <div className="space-y-2">
+                            <input
+                              type="text"
+                              value={block.content}
+                              onChange={(e) => updateBlock(block.id, e.target.value)}
+                              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                              placeholder="Button text..."
+                            />
+                            <input
+                              type="url"
+                              value={block.buttonUrl || ''}
+                              onChange={(e) => updateBlockUrl(block.id, e.target.value)}
+                              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                              placeholder="Button URL (e.g., https://example.com)"
+                            />
+                          </div>
                         ) : (
                           <textarea
                             value={block.content}
@@ -254,6 +427,12 @@ export default function EmailTemplateEditor({
 
                 {/* Add Block Buttons */}
                 <div className="mt-6 flex flex-wrap gap-2">
+                  <button
+                    onClick={() => addBlock('logo')}
+                    className="px-4 py-2 border rounded-lg hover:bg-muted"
+                  >
+                    + Logo
+                  </button>
                   <button
                     onClick={() => addBlock('text')}
                     className="px-4 py-2 border rounded-lg hover:bg-muted"
@@ -330,8 +509,10 @@ function getDefaultContent(type: TemplateBlock['type']): string {
   switch (type) {
     case 'text':
       return 'Enter your text here...'
+    case 'logo':
+      return 'Event Logo'
     case 'image':
-      return 'https://via.placeholder.com/600x300'
+      return ''
     case 'button':
       return 'Click Here'
     case 'qrcode':

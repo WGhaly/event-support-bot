@@ -1,13 +1,12 @@
 'use server'
 
-import { redirect } from 'next/navigation'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 
 export async function createEvent(formData: FormData) {
   const session = await auth()
   if (!session?.user?.id) {
-    redirect('/auth/login')
+    return { error: 'Unauthorized', eventId: null }
   }
 
   const name = formData.get('name') as string
@@ -20,7 +19,7 @@ export async function createEvent(formData: FormData) {
   const maxAttendees = formData.get('maxAttendees') as string
 
   if (!name || !slug) {
-    throw new Error('Name and slug are required')
+    return { error: 'Name and slug are required', eventId: null }
   }
 
   try {
@@ -35,12 +34,13 @@ export async function createEvent(formData: FormData) {
         endDate: endDate ? new Date(endDate) : null,
         location: location || null,
         maxAttendees: maxAttendees ? parseInt(maxAttendees) : null,
+        isPublished: true, // Publish by default
       },
     })
 
-    redirect(`/dashboard/modules/events/${event.id}`)
+    return { error: null, eventId: event.id }
   } catch (error) {
     console.error('Error creating event:', error)
-    throw new Error('Failed to create event')
+    return { error: 'Failed to create event', eventId: null }
   }
 }

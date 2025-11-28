@@ -3,8 +3,9 @@
 import { redirect } from 'next/navigation'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { revalidatePath } from 'next/cache'
 
-export async function updateEvent(formData: FormData) {
+export async function updateEvent(formData: FormData): Promise<{ error?: string }> {
   const session = await auth()
   if (!session?.user?.id) {
     redirect('/auth/login')
@@ -12,7 +13,6 @@ export async function updateEvent(formData: FormData) {
 
   const id = formData.get('id') as string
   const name = formData.get('name') as string
-  const slug = formData.get('slug') as string
   const description = formData.get('description') as string
   const logoUrl = formData.get('logoUrl') as string
   const startDate = formData.get('startDate') as string
@@ -21,39 +21,39 @@ export async function updateEvent(formData: FormData) {
   const maxAttendees = formData.get('maxAttendees') as string
   const isPublished = formData.get('isPublished') === 'on'
 
-  if (!id || !name || !slug) {
-    throw new Error('ID, name, and slug are required')
+  if (!id || !name || !startDate || !endDate || !location) {
+    return { error: 'Name, dates, and location are required' }
+  }
+
+  // Verify ownership
+  const event = await prisma.event.findUnique({
+    where: { id },
+  })
+
+  if (!event || event.userId !== session.user.id) {
+    return { error: 'Event not found or unauthorized' }
   }
 
   try {
-    // Verify ownership
-    const event = await prisma.event.findUnique({
-      where: { id },
-    })
-
-    if (!event || event.userId !== session.user.id) {
-      throw new Error('Event not found or unauthorized')
-    }
-
     await prisma.event.update({
       where: { id },
       data: {
         name,
-        slug: slug.toLowerCase().replace(/[^a-z0-9-]/g, '-'),
         description: description || null,
         logoUrl: logoUrl || null,
-        startDate: startDate ? new Date(startDate) : null,
-        endDate: endDate ? new Date(endDate) : null,
-        location: location || null,
+        startDate: new Date(startDate),
+        endDate: new Date(endDate),
+        location,
         maxAttendees: maxAttendees ? parseInt(maxAttendees) : null,
         isPublished,
       },
     })
 
-    redirect(`/dashboard/modules/events/${id}`)
+    revalidatePath(`/dashboard/modules/events/${id}`)
+    return {}
   } catch (error) {
     console.error('Error updating event:', error)
-    throw new Error('Failed to update event')
+    return { error: 'Failed to update event' }
   }
 }
 

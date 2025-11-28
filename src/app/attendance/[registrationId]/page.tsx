@@ -1,7 +1,7 @@
 import { redirect, notFound } from 'next/navigation'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
-import { CheckCircle, AlertCircle, Calendar, User, Mail } from 'lucide-react'
+import { CheckCircle, AlertCircle, Calendar, User, Mail, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import AttendanceActions from './AttendanceActions'
 
@@ -65,6 +65,15 @@ export default async function AttendancePage({
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 py-12 px-4">
       <div className="max-w-3xl mx-auto">
+        {/* Back Button */}
+        <Link
+          href={`/dashboard/modules/events/${registration.event.id}/registrations`}
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Registrations
+        </Link>
+
         {/* Event Info */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-6">
           <div className="flex items-center gap-3 mb-4">
@@ -157,16 +166,6 @@ export default async function AttendancePage({
               <AttendanceActions registrationId={registration.id} />
             </div>
           )}
-        </div>
-
-        {/* Back Link */}
-        <div className="mt-6 text-center">
-          <Link
-            href={`/dashboard/modules/events/${registration.event.id}/registrations`}
-            className="text-sm text-primary hover:underline"
-          >
-            ← Back to Registrations
-          </Link>
         </div>
       </div>
     </div>

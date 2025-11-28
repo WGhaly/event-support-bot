@@ -43,6 +43,7 @@ export default async function EmailTemplatePage({
         <EmailTemplateEditor 
           eventId={event.id} 
           initialTemplate={event.emailTemplate || undefined}
+          eventLogoUrl={event.logoUrl}
         />
       </div>
     </div>

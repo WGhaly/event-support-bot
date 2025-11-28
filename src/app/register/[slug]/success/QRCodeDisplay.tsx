@@ -45,7 +45,7 @@ export default function QRCodeDisplay({
   }
 
   return (
-    <div className="inline-block">
+    <div className="flex flex-col items-center">
       <div className="bg-white p-4 rounded-lg shadow-md inline-block">
         <canvas ref={canvasRef} className="block" />
       </div>

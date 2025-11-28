@@ -12,6 +12,7 @@ import {
   Mail,
   ExternalLink,
 } from 'lucide-react'
+import { CopyUrlButton } from '@/components/copy-url-button'
 
 export default async function EventDetailsPage({
   params,
@@ -190,12 +191,7 @@ export default async function EventDetailsPage({
                 {registrationUrl}
               </p>
             </div>
-            <button
-              onClick={() => navigator.clipboard.writeText(registrationUrl)}
-              className="px-4 py-2 border rounded-lg hover:bg-background transition-colors"
-            >
-              Copy
-            </button>
+            <CopyUrlButton url={registrationUrl} />
           </div>
         </div>
       </div>
