@@ -37,11 +37,6 @@ export default async function DashboardPage() {
     )
   }
 
-  // If only one module, redirect directly to it
-  if (modules.length === 1) {
-    redirect(modules[0].route)
-  }
-
   return (
     <div>
       <div className="mb-8">

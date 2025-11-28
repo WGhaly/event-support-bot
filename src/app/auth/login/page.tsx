@@ -12,20 +12,8 @@ export default async function LoginPage({
 }: {
   searchParams: Promise<{ error?: string; success?: string }>;
 }) {
-  // Redirect if already authenticated
-  // Wrap in try-catch to handle JWT decryption errors from old sessions
-  let session;
-  try {
-    session = await auth();
-  } catch (error) {
-    // Ignore JWT errors - user will need to log in again
-    console.log('Session check failed (old cookie), allowing login');
-    session = null;
-  }
-  
-  if (session) {
-    redirect('/dashboard');
-  }
+  // Don't check session on login page to avoid redirect loops
+  // Users can manually log in even if they have an old/invalid session
 
   const params = await searchParams;
   const errorMessage = params.error

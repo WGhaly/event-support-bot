@@ -77,6 +77,26 @@ export function AdminManagementClient({
     }
   }
 
+  const handleToggleAdminStatus = async (adminId: string, currentStatus: boolean) => {
+    try {
+      const response = await fetch('/api/super-admin/admins/toggle-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adminId, isActive: !currentStatus }),
+      })
+
+      if (response.ok) {
+        window.location.reload()
+      } else {
+        const data = await response.json()
+        alert(data.error || 'Failed to toggle admin status')
+      }
+    } catch (error) {
+      console.error('Error toggling admin status:', error)
+      alert('Failed to toggle admin status')
+    }
+  }
+
   return (
     <div>
       {/* Create Button */}
@@ -155,14 +175,26 @@ export function AdminManagementClient({
                   {new Date(admin.createdAt).toLocaleDateString()}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm">
-                  {admin.role.name !== 'super-admin' && (
-                    <button
-                      onClick={() => handleDeleteAdmin(admin.id)}
-                      className="text-red-600 hover:text-red-900 font-medium"
-                    >
-                      Delete
-                    </button>
-                  )}
+                  <div className="flex gap-3">
+                    {admin.role.name !== 'super-admin' && (
+                      <>
+                        <button
+                          onClick={() => handleToggleAdminStatus(admin.id, admin.isActive)}
+                          className={`font-medium ${
+                            admin.isActive ? 'text-orange-600 hover:text-orange-900' : 'text-green-600 hover:text-green-900'
+                          }`}
+                        >
+                          {admin.isActive ? 'Disable' : 'Enable'}
+                        </button>
+                        <button
+                          onClick={() => handleDeleteAdmin(admin.id)}
+                          className="text-red-600 hover:text-red-900 font-medium"
+                        >
+                          Delete
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}

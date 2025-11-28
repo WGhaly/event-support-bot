@@ -5,7 +5,13 @@ import { UserManagementClient } from './user-management-client'
 export default async function UserManagementPage() {
   await requireRole('super-admin')
 
+  // Only get regular users (not admins or super-admins)
   const users = await prisma.user.findMany({
+    where: {
+      role: {
+        name: 'user',
+      },
+    },
     include: {
       role: true,
       userModules: {
@@ -33,7 +39,7 @@ export default async function UserManagementPage() {
       <div className="mb-8">
         <h2 className="text-3xl font-bold text-gray-900">User Management</h2>
         <p className="mt-2 text-gray-600">
-          Manage user accounts and module access
+          Manage registered user accounts and module access
         </p>
       </div>
 
