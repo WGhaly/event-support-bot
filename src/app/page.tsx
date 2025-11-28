@@ -17,9 +17,16 @@ export default function HomePage() {
         }}
         className="relative flex flex-col gap-4 items-center justify-center px-4"
       >
-        {/* Main Heading */}
-        <div className="text-5xl md:text-8xl font-bold dark:text-white text-center bg-clip-text text-transparent bg-gradient-to-br from-blue-600 via-blue-500 to-blue-700 dark:from-blue-400 dark:via-blue-300 dark:to-blue-500">
-          The Luj Project
+        {/* Logo and Main Heading */}
+        <div className="flex flex-col items-center gap-6">
+          <img 
+            src="/icons/Luuj Logo.png" 
+            alt="Luuj Logo" 
+            className="h-24 md:h-32 w-auto"
+          />
+          <div className="text-5xl md:text-8xl font-bold dark:text-white text-center bg-clip-text text-transparent bg-gradient-to-br from-blue-600 via-blue-500 to-blue-700 dark:from-blue-400 dark:via-blue-300 dark:to-blue-500">
+            Luuj
+          </div>
         </div>
         
         {/* Subheading */}

@@ -2,7 +2,7 @@ import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 
 export const metadata = {
-  title: 'New Project | The Luj Project',
+  title: 'New Project | Luuj',
   description: 'Create a new badge project',
 };
 

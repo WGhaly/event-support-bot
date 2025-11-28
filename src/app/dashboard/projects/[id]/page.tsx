@@ -69,7 +69,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   });
 
   return {
-    title: project ? `${project.name} | The Luj Project` : 'Project Not Found',
+    title: project ? `${project.name} | Luuj` : 'Project Not Found',
   };
 }
 

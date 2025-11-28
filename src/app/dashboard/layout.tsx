@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { SignOutButton } from '@/components/sign-out-button';
 
 export const metadata = {
-  title: 'Dashboard | The Luj Project',
+  title: 'Dashboard | Luuj',
   description: 'Manage your badge projects',
 };
 
@@ -29,9 +29,16 @@ export default async function DashboardLayout({
             <div className="flex items-center space-x-8">
               <Link
                 href="/dashboard"
-                className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent hover:from-blue-700 hover:to-blue-800 transition"
+                className="flex items-center gap-3 hover:opacity-80 transition"
               >
-                The Luj Project
+                <img 
+                  src="/icons/Luuj Logo.png" 
+                  alt="Luuj" 
+                  className="h-10 w-auto"
+                />
+                <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
+                  Luuj
+                </span>
               </Link>
               <Link
                 href="/dashboard"

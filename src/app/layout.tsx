@@ -8,8 +8,8 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'The Luj Project | Badge Automation Platform',
-  description: 'Generate professional ID cards and badges in bulk - The Luj Project',
+  title: 'Luuj | Badge Automation Platform',
+  description: 'Generate professional ID cards and badges in bulk with Luuj',
 }
 
 export default function RootLayout({
