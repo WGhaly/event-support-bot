@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { initializeFonts } from '@/lib/badge-generator';
-import { createCanvas, GlobalFonts } from '@napi-rs/canvas';
+import { initializeFonts, getRegisteredFonts } from '@/lib/badge-generator';
+import { createCanvas } from 'canvas';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,7 +17,7 @@ export async function GET() {
     // Initialize fonts explicitly
     const fontInit = initializeFonts();
     logs.push(`Font initialization result: ${JSON.stringify(fontInit)}`);
-    logs.push(`Registered fonts: ${JSON.stringify(GlobalFonts.families)}`);
+    logs.push(`Registered fonts: ${JSON.stringify(getRegisteredFonts())}`);
     
     if (!fontInit.success) {
       return NextResponse.json({
@@ -67,8 +67,8 @@ export async function GET() {
     ctx.fillText('TechCorp', 150, 105);
     logs.push('Rendered additional text');
     
-    // Encode to PNG
-    const pngBuffer = await canvas.encode('png');
+    // Encode to PNG using node-canvas
+    const pngBuffer = canvas.toBuffer('image/png');
     logs.push(`Badge generated successfully, size: ${pngBuffer.length}`);
     
     // Return JSON with logs and image
@@ -77,7 +77,7 @@ export async function GET() {
       bufferSize: pngBuffer.length,
       logs,
       fontInit,
-      registeredFonts: GlobalFonts.families,
+      registeredFonts: getRegisteredFonts(),
       imageBase64: `data:image/png;base64,${pngBuffer.toString('base64')}`,
     });
   } catch (error: any) {

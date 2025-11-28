@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { createCanvas, GlobalFonts } from '@napi-rs/canvas';
-import { initializeFonts } from '@/lib/badge-generator';
+import { createCanvas } from 'canvas';
+import { initializeFonts, getRegisteredFonts } from '@/lib/badge-generator';
 import fs from 'fs';
 import path from 'path';
 
@@ -40,10 +40,10 @@ export async function GET() {
       };
     });
 
-    // Get registered fonts
+    // Get registered fonts from badge generator
     diagnostics.registeredFonts = {
-      families: GlobalFonts.families,
-      count: GlobalFonts.families.length,
+      fonts: getRegisteredFonts(),
+      count: getRegisteredFonts().length,
     };
 
     // Test canvas creation
@@ -104,8 +104,8 @@ export async function GET() {
         testCtx.fillText('Software Engineer', 150, 80);
         testCtx.fillText('TechCorp', 150, 105);
         
-        // Encode to base64
-        const buffer = await testCanvas.encode('png');
+        // Encode to base64 using node-canvas
+        const buffer = testCanvas.toBuffer('image/png');
         const base64 = buffer.toString('base64');
         
         diagnostics.testBadge = {
@@ -128,15 +128,15 @@ export async function GET() {
       };
     }
 
-    // Check if @napi-rs/canvas module is loaded correctly
+    // Check if node-canvas module is loaded correctly
     try {
-      diagnostics.napiRsCanvas = {
+      diagnostics.nodeCanvas = {
         loaded: true,
         createCanvas: typeof createCanvas,
-        GlobalFonts: typeof GlobalFonts,
+        registeredFonts: getRegisteredFonts(),
       };
     } catch (e: any) {
-      diagnostics.napiRsCanvas = {
+      diagnostics.nodeCanvas = {
         loaded: false,
         error: e.message,
       };

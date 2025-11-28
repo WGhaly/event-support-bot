@@ -6,6 +6,13 @@ let fontsInitialized = false;
 let registeredFonts: string[] = [];
 
 /**
+ * Get the list of registered fonts
+ */
+export function getRegisteredFonts(): string[] {
+  return [...registeredFonts];
+}
+
+/**
  * Initialize and register fonts for canvas text rendering
  * Must be called before generating badges
  */
