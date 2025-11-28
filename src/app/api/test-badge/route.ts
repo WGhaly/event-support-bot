@@ -44,8 +44,20 @@ export async function GET() {
     // Try without specifying font first (should use default)
     ctx.font = '32px Inter';
     logs.push(`Testing with Inter font: "${ctx.font}"`);
-    ctx.fillText('John Doe', 150, 50);
-    logs.push('Rendered with Inter');
+    
+    // Test if measureText works (indicates font is loaded)
+    const metrics = ctx.measureText('John Doe');
+    logs.push(`measureText width: ${metrics.width}`);
+    
+    // Try strokeText instead of fillText
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = '#000000';
+    ctx.strokeText('John Doe (STROKE)', 10, 50);
+    logs.push('Rendered with strokeText');
+    
+    // Also try fillText
+    ctx.fillText('John Doe (FILL)', 10, 80);
+    logs.push('Rendered with fillText');
     
     ctx.font = '48px Inter';
     logs.push(`Font set to: "${ctx.font}"`);
