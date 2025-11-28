@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { initializeFonts } from '@/lib/badge-generator';
 import { createCanvas, GlobalFonts } from '@napi-rs/canvas';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * Simple test endpoint to verify font rendering works
  * Creates a basic badge with text to test the font fix
