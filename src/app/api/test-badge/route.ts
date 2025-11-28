@@ -37,6 +37,13 @@ export async function GET() {
     
     // Test rendering with Inter (regular)
     ctx.fillStyle = '#000000';
+    
+    // Try without specifying font first (should use default)
+    ctx.font = '48px sans-serif';
+    logs.push(`Testing with sans-serif font: "${ctx.font}"`);
+    ctx.fillText('DEFAULT FONT TEST', 50, 50);
+    logs.push('Rendered with sans-serif');
+    
     ctx.font = '48px Inter';
     logs.push(`Font set to: "${ctx.font}"`);
     
