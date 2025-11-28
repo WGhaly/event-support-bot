@@ -52,12 +52,28 @@ export async function POST(req: NextRequest) {
     // Hash password
     const passwordHash = await bcrypt.hash(password, 10);
 
-    // Create user
+    // Get the 'user' role
+    const userRole = await prisma.role.findUnique({
+      where: { name: 'user' },
+    });
+
+    if (!userRole) {
+      return NextResponse.redirect(
+        new URL(
+          '/auth/signup?error=' +
+            encodeURIComponent('System error: User role not found. Please contact support.'),
+          req.url
+        )
+      );
+    }
+
+    // Create user with role
     await prisma.user.create({
       data: {
         name,
         email,
         passwordHash,
+        roleId: userRole.id,
       },
     });
 
@@ -111,11 +127,27 @@ export async function PUT(req: NextRequest) {
 
     const passwordHash = await bcrypt.hash(password, 10);
 
+    // Get the 'user' role
+    const userRole = await prisma.role.findUnique({
+      where: { name: 'user' },
+    });
+
+    if (!userRole) {
+      return NextResponse.json(
+        createErrorResponse(
+          'System error: User role not found. Please contact support.',
+          'ROLE_NOT_FOUND'
+        ),
+        { status: 500 }
+      );
+    }
+
     const user = await prisma.user.create({
       data: {
         name,
         email,
         passwordHash,
+        roleId: userRole.id,
       },
       select: {
         id: true,
