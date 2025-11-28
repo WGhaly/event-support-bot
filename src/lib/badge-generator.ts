@@ -9,8 +9,20 @@ let fontsInitialized = false;
  * Must be called before generating badges
  */
 export function initializeFonts(): { success: boolean; fontsRegistered: number; error?: string } {
-  if (fontsInitialized) {
-    return { success: true, fontsRegistered: GlobalFonts.families.length };
+  // Check if fonts are actually registered, not just if we tried before
+  const currentFontCount = GlobalFonts.families.length;
+  console.log(`[FONT INIT] Current GlobalFonts.families.length: ${currentFontCount}`);
+  console.log(`[FONT INIT] fontsInitialized flag: ${fontsInitialized}`);
+  
+  if (fontsInitialized && currentFontCount >= 2) {
+    console.log(`[FONT INIT] Fonts already initialized, returning success`);
+    return { success: true, fontsRegistered: currentFontCount };
+  }
+  
+  // If flag is true but no fonts registered, something went wrong - reinitialize
+  if (fontsInitialized && currentFontCount === 0) {
+    console.log(`[FONT INIT] WARNING: fontsInitialized=true but no fonts registered! Reinitializing...`);
+    fontsInitialized = false;
   }
 
   try {
@@ -81,8 +93,19 @@ export function initializeFonts(): { success: boolean; fontsRegistered: number; 
     } else {
       console.log(`[FONT INIT] ✓ Successfully registered ${fontsRegistered} font(s)`);
       console.log('[FONT INIT] Available fonts:', GlobalFonts.families);
+      
+      // Double-check that GlobalFonts actually has the fonts
+      const actualCount = GlobalFonts.families.length;
+      console.log(`[FONT INIT] Double-check: GlobalFonts.families.length = ${actualCount}`);
+      
+      if (actualCount === 0) {
+        const error = '[FONT INIT] ⚠️ CRITICAL: registerFromPath() succeeded but GlobalFonts.families is empty!';
+        console.error(error);
+        return { success: false, fontsRegistered: 0, error };
+      }
+      
       fontsInitialized = true;
-      return { success: true, fontsRegistered };
+      return { success: true, fontsRegistered: actualCount };
     }
   } catch (e: any) {
     const error = '[FONT INIT] ⚠️ CRITICAL: Font registration failed: ' + e.message;
