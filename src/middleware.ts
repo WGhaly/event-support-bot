@@ -7,7 +7,7 @@ export async function middleware(request: NextRequest) {
 
   // Public routes - allow access
   const publicRoutes = ['/', '/auth/login', '/auth/signup', '/auth/error']
-  if (publicRoutes.includes(pathname)) {
+  if (publicRoutes.includes(pathname) || pathname.startsWith('/register/')) {
     return NextResponse.next()
   }
 
