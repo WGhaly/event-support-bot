@@ -60,13 +60,11 @@ export async function POST(
     });
 
     const chunks: Buffer[] = [];
-    let archiveFinished = false;
     
     // Set up promise to wait for archive completion BEFORE adding files
     const archivePromise = new Promise<void>((resolve, reject) => {
       archive.on('end', () => {
         console.log('[ZIP API] Archive end event fired');
-        archiveFinished = true;
         resolve();
       });
       
