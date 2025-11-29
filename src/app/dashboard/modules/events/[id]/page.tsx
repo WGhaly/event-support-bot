@@ -19,30 +19,42 @@ export default async function EventDetailsPage({
 }: {
   params: Promise<{ id: string }>
 }) {
+  console.log('=== EVENT DETAILS PAGE RENDERING ===')
+  
   let session
   try {
     session = await auth()
+    console.log('Session retrieved:', session?.user?.id ? `User ID: ${session.user.id}` : 'No session')
   } catch (error) {
     console.error('Auth error in event page:', error)
     redirect('/auth/login')
   }
   
   if (!session?.user?.id) {
+    console.log('No user ID in session, redirecting to login')
     redirect('/auth/login')
   }
 
   const { id } = await params
-  const event = await prisma.event.findUnique({
-    where: { id },
-    include: {
-      _count: {
-        select: {
-          registrations: true,
-          formFields: true,
+  console.log('Event ID from params:', id)
+  
+  let event
+  try {
+    event = await prisma.event.findUnique({
+      where: { id },
+      include: {
+        _count: {
+          select: {
+            registrations: true,
+            formFields: true,
+          },
         },
       },
-    },
-  })
+    })
+  } catch (error) {
+    console.error('Database error fetching event:', error)
+    throw new Error(`Failed to fetch event: ${error}`)
+  }
 
   if (!event) {
     notFound()
