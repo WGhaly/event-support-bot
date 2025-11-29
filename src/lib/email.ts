@@ -39,13 +39,17 @@ export async function sendEventInvite({
 }: SendEventInviteParams) {
   const fromEmail = process.env.RESEND_FROM_EMAIL || 'events@yourdomain.com'
   
-  // Generate QR code as base64 data URI for inline embedding
-  const qrCodeDataUri = await QRCode.toDataURL(qrCodeData, {
+  // Generate QR code as PNG buffer for attachment
+  const qrCodeBuffer = await QRCode.toBuffer(qrCodeData, {
     errorCorrectionLevel: 'H',
-    type: 'image/png',
+    type: 'png',
     width: 400,
     margin: 2,
   })
+  
+  // Use CID reference for the QR code in the email
+  const qrCodeCid = 'qrcode@luuj.cloud'
+  const qrCodeSrc = `cid:${qrCodeCid}`
   
   // Use custom template if provided, otherwise use default
   let htmlContent = customTemplate
@@ -54,7 +58,7 @@ export async function sendEventInvite({
         eventName,
         eventDate: eventDate || 'TBA',
         eventLocation: eventLocation || 'TBA',
-        qrCodeUrl: qrCodeDataUri,
+        qrCodeUrl: qrCodeSrc,
         registrationId,
       })
     : getDefaultTemplate({
@@ -62,11 +66,11 @@ export async function sendEventInvite({
         eventName,
         eventDate,
         eventLocation,
-        qrCodeUrl: qrCodeDataUri,
+        qrCodeUrl: qrCodeSrc,
         registrationId,
       })
   
-  // Process template to fix image URLs
+  // Process template to fix image URLs (but preserve CID references)
   htmlContent = processEmailTemplate(htmlContent)
 
   try {
@@ -79,6 +83,7 @@ export async function sendEventInvite({
       hasCustomTemplate: !!customTemplate,
       htmlContentLength: htmlContent.length,
       htmlPreview: htmlContent.substring(0, 200) + '...',
+      qrCodeAttachmentSize: qrCodeBuffer.length,
     })
     
     const { data, error } = await client.emails.send({
@@ -86,6 +91,13 @@ export async function sendEventInvite({
       to,
       subject: `Invitation: ${eventName}`,
       html: htmlContent,
+      attachments: [
+        {
+          filename: 'qrcode.png',
+          content: qrCodeBuffer,
+          contentId: qrCodeCid,
+        },
+      ],
     })
 
     if (error) {
@@ -160,14 +172,14 @@ function replaceTemplateVariables(
 /**
  * Process email template to fix image URLs
  * Converts relative and localhost URLs to production URLs
- * Preserves base64 data URIs (for QR codes)
+ * Preserves base64 data URIs and CID references (for QR codes)
  */
 function processEmailTemplate(html: string): string {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://luuj.cloud'
   
   // Replace relative image URLs (src="/uploads/...")
-  // But skip data URIs (src="data:image/...")
-  html = html.replace(/src="(?!data:)\/([^"]+)"/g, `src="${baseUrl}/$1"`)
+  // But skip data URIs (src="data:image/...") and CID references (src="cid:...")
+  html = html.replace(/src="(?!data:|cid:)\/([^"]+)"/g, `src="${baseUrl}/$1"`)
   
   // Replace localhost URLs (src="http://localhost:3000/...")
   html = html.replace(/src="http:\/\/localhost:\d+\/([^"]+)"/g, `src="${baseUrl}/$1"`)
