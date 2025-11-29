@@ -18,6 +18,14 @@ export default async function EventDetailsPage({
 }: {
   params: Promise<{ id: string }>
 }) {
+  // DEBUG: Test if this page is even executing
+  return (
+    <div className="p-8">
+      <h1 className="text-4xl font-bold text-green-600">✅ EVENT PAGE COMPONENT IS EXECUTING!</h1>
+      <p className="mt-4 text-lg">If you see this, Next.js found the route and is rendering the component.</p>
+    </div>
+  )
+  
   // Auth is handled by dashboard layout - we can safely assume user is authenticated here
   // Getting session from auth() might fail in Edge Runtime, so we'll get user ID from the database query
   
