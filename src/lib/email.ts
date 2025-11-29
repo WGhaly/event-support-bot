@@ -74,6 +74,8 @@ export async function sendEventInvite({
       to,
       subject: `Invitation: ${eventName}`,
       hasCustomTemplate: !!customTemplate,
+      htmlContentLength: htmlContent.length,
+      htmlPreview: htmlContent.substring(0, 200) + '...',
     })
     
     const { data, error } = await client.emails.send({

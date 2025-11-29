@@ -70,6 +70,8 @@ export async function POST(
     const qrCodeBaseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
     console.log('[send-bulk] QR Code Base URL:', qrCodeBaseUrl)
     console.log('[send-bulk] Email template exists:', !!event.emailTemplate)
+    console.log('[send-bulk] Email template length:', event.emailTemplate?.length || 0)
+    console.log('[send-bulk] Email template preview:', event.emailTemplate?.substring(0, 200) || 'No template')
     
     const invites = registrations.map(registration => {
       let formData: any = {}
