@@ -160,12 +160,14 @@ function replaceTemplateVariables(
 /**
  * Process email template to fix image URLs
  * Converts relative and localhost URLs to production URLs
+ * Preserves base64 data URIs (for QR codes)
  */
 function processEmailTemplate(html: string): string {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://luuj.cloud'
   
   // Replace relative image URLs (src="/uploads/...")
-  html = html.replace(/src="\/([^"]+)"/g, `src="${baseUrl}/$1"`)
+  // But skip data URIs (src="data:image/...")
+  html = html.replace(/src="(?!data:)\/([^"]+)"/g, `src="${baseUrl}/$1"`)
   
   // Replace localhost URLs (src="http://localhost:3000/...")
   html = html.replace(/src="http:\/\/localhost:\d+\/([^"]+)"/g, `src="${baseUrl}/$1"`)
