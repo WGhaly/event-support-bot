@@ -1,37 +1,25 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { auth } from '@/lib/auth'
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
   // Public routes - allow access
   const publicRoutes = ['/', '/auth/login', '/auth/signup', '/auth/error']
-  if (publicRoutes.includes(pathname) || pathname.startsWith('/register/')) {
+  if (publicRoutes.includes(pathname) || pathname.startsWith('/register/') || pathname.startsWith('/attendance/')) {
     return NextResponse.next()
   }
 
-  // Get session
-  const session = await auth()
-
+  // Check for auth session cookie
+  const sessionToken = request.cookies.get('authjs.session-token') || request.cookies.get('__Secure-authjs.session-token')
+  
   // Protected routes - require authentication
-  if (!session?.user) {
+  if (!sessionToken) {
     return NextResponse.redirect(new URL('/auth/login', request.url))
   }
 
-  // Super Admin routes - require super-admin role
-  if (pathname.startsWith('/super-admin')) {
-    if (session.user.role !== 'super-admin') {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
-    }
-  }
-
-  // Admin routes - require admin or super-admin role
-  if (pathname.startsWith('/admin')) {
-    if (!['admin', 'super-admin'].includes(session.user.role)) {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
-    }
-  }
+  // Note: We can't reliably check user roles in Edge Runtime middleware with NextAuth
+  // Role checks should be done in the actual page components using auth() from server components
 
   return NextResponse.next()
 }
