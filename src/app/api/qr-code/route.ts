@@ -26,7 +26,7 @@ export async function GET(request: Request) {
     })
 
     // Return the QR code image
-    return new NextResponse(qrCodeBuffer, {
+    return new NextResponse(qrCodeBuffer as unknown as BodyInit, {
       status: 200,
       headers: {
         'Content-Type': 'image/png',
