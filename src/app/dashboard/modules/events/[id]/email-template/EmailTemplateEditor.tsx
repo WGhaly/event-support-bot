@@ -1,7 +1,17 @@
 'use client'
 
-import { useState, useRef } from 'react'
-import { Mail, Eye, Code, Save, Wand2, Upload, X } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import { Mail, Eye, Code, Save, Wand2, Upload, X, Plus } from 'lucide-react'
+import { toast } from 'sonner'
+
+const AVAILABLE_VARIABLES = [
+  { name: 'attendeeName', label: 'Attendee Name', description: 'The name of the attendee' },
+  { name: 'eventName', label: 'Event Name', description: 'The name of the event' },
+  { name: 'eventDate', label: 'Event Date', description: 'The date of the event' },
+  { name: 'eventLocation', label: 'Event Location', description: 'The location of the event' },
+  { name: 'qrCodeUrl', label: 'QR Code', description: 'QR code for check-in' },
+  { name: 'registrationId', label: 'Registration ID', description: 'Unique registration ID' },
+]
 
 type TemplateBlock = {
   id: string
@@ -14,7 +24,6 @@ type TemplateBlock = {
 
 export default function EmailTemplateEditor({
   eventId,
-  initialTemplate,
   eventLogoUrl,
 }: {
   eventId: string
@@ -25,9 +34,51 @@ export default function EmailTemplateEditor({
   const [showPreview, setShowPreview] = useState(false)
   const [showCode, setShowCode] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  const [customHtml, setCustomHtml] = useState(initialTemplate || '')
+  const [isLoading, setIsLoading] = useState(true)
+  const [customHtml, setCustomHtml] = useState('')
   const [uploadingImages, setUploadingImages] = useState<Set<string>>(new Set())
+  const [showVariableMenu, setShowVariableMenu] = useState<string | null>(null)
+  const [activeTextarea, setActiveTextarea] = useState<HTMLTextAreaElement | null>(null)
   const fileInputRefs = useRef<Map<string, HTMLInputElement>>(new Map())
+
+  // Load saved template on mount
+  useEffect(() => {
+    loadSavedTemplate()
+  }, [eventId])
+
+  const loadSavedTemplate = async () => {
+    try {
+      const response = await fetch(`/api/events/${eventId}/email-template`)
+      if (response.ok) {
+        const data = await response.json()
+        if (data.template) {
+          // Always store the HTML for code view
+          setCustomHtml(data.template)
+          
+          // Try to parse blocks from saved template
+          const parsedBlocks = parseHtmlToBlocks(data.template)
+          if (parsedBlocks.length > 0) {
+            setBlocks(parsedBlocks)
+          } else {
+            // If we can't parse it, load default blocks for visual mode
+            loadDefaultTemplate()
+          }
+          
+          // Always start in visual mode
+          setShowCode(false)
+        } else {
+          loadDefaultTemplate()
+        }
+      } else {
+        loadDefaultTemplate()
+      }
+    } catch (error) {
+      console.error('Failed to load template:', error)
+      loadDefaultTemplate()
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const addBlock = (type: TemplateBlock['type']) => {
     const newBlock: TemplateBlock = {
@@ -37,6 +88,51 @@ export default function EmailTemplateEditor({
       styles: {},
     }
     setBlocks([...blocks, newBlock])
+  }
+
+  const insertVariable = (variableName: string) => {
+    if (showCode) {
+      // Insert into code editor
+      const textarea = document.querySelector('textarea') as HTMLTextAreaElement
+      if (textarea) {
+        const start = textarea.selectionStart
+        const end = textarea.selectionEnd
+        const text = customHtml
+        const before = text.substring(0, start)
+        const after = text.substring(end, text.length)
+        const variable = `{${variableName}}`
+        setCustomHtml(before + variable + after)
+        
+        // Set cursor position after inserted variable
+        setTimeout(() => {
+          textarea.focus()
+          textarea.setSelectionRange(start + variable.length, start + variable.length)
+        }, 0)
+      }
+    } else if (activeTextarea) {
+      // Insert into active block textarea
+      const start = activeTextarea.selectionStart
+      const end = activeTextarea.selectionEnd
+      const text = activeTextarea.value
+      const before = text.substring(0, start)
+      const after = text.substring(end, text.length)
+      const variable = `{${variableName}}`
+      const newValue = before + variable + after
+      
+      // Find the block ID from the textarea's data attribute
+      const blockId = activeTextarea.getAttribute('data-block-id')
+      if (blockId) {
+        updateBlock(blockId, newValue)
+      }
+      
+      // Set cursor position after inserted variable
+      setTimeout(() => {
+        activeTextarea.focus()
+        activeTextarea.setSelectionRange(start + variable.length, start + variable.length)
+      }, 0)
+    }
+    
+    setShowVariableMenu(null)
   }
 
   const updateBlock = (id: string, content: string) => {
@@ -60,7 +156,7 @@ export default function EmailTemplateEditor({
     
     try {
       const formData = new FormData()
-      formData.append('file', file)
+      formData.append('logo', file)
 
       const response = await fetch('/api/events/logo', {
         method: 'POST',
@@ -76,8 +172,10 @@ export default function EmailTemplateEditor({
       setBlocks(blocks.map(block => 
         block.id === blockId ? { ...block, imageUrl: url, content: url } : block
       ))
+      
+      toast.success('Image uploaded successfully')
     } catch (error) {
-      alert('Failed to upload image. Please try again.')
+      toast.error('Failed to upload image. Please try again.')
     } finally {
       setUploadingImages(prev => {
         const newSet = new Set(prev)
@@ -173,12 +271,71 @@ export default function EmailTemplateEditor({
 
       if (!response.ok) throw new Error('Failed to save template')
 
-      alert('Email template saved successfully!')
+      toast.success('Email template saved successfully!')
     } catch (error) {
-      alert('Failed to save template. Please try again.')
+      toast.error('Failed to save template. Please try again.')
     } finally {
       setIsSaving(false)
     }
+  }
+
+  const parseHtmlToBlocks = (html: string): TemplateBlock[] => {
+    const blocks: TemplateBlock[] = []
+    
+    // Simple parser - looks for our specific patterns
+    // Text blocks: <p ...>content</p>
+    const textMatches = html.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/g)
+    for (const match of textMatches) {
+      const content = match[1].trim()
+      if (content && !content.includes('<img')) {
+        blocks.push({
+          id: `block-${Date.now()}-${Math.random()}`,
+          type: 'text',
+          content: content,
+          styles: {},
+        })
+      }
+    }
+    
+    // Logo blocks: look for logo-specific divs
+    const logoMatches = html.matchAll(/<div[^>]*text-align: center[^>]*>[\s]*<img src="([^"]+)" alt="Event Logo"/g)
+    for (const match of logoMatches) {
+      blocks.push({
+        id: `block-${Date.now()}-${Math.random()}`,
+        type: 'logo',
+        content: 'Logo',
+        imageUrl: match[1],
+        styles: {},
+      })
+    }
+    
+    // QR code blocks
+    if (html.includes('{qrCodeUrl}')) {
+      blocks.push({
+        id: `block-${Date.now()}-${Math.random()}`,
+        type: 'qrcode',
+        content: 'QR Code',
+        styles: {},
+      })
+    }
+    
+    // Button blocks: <a href="..." style="...button styles...">text</a>
+    const buttonMatches = html.matchAll(/<a href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/g)
+    for (const match of buttonMatches) {
+      const href = match[1]
+      const text = match[2].trim()
+      if (href !== '#' || text) {
+        blocks.push({
+          id: `block-${Date.now()}-${Math.random()}`,
+          type: 'button',
+          content: text,
+          buttonUrl: href,
+          styles: {},
+        })
+      }
+    }
+    
+    return blocks
   }
 
   const loadDefaultTemplate = () => {
@@ -213,8 +370,19 @@ export default function EmailTemplateEditor({
       .replace(/{eventName}/g, 'Sample Event')
       .replace(/{eventDate}/g, 'December 15, 2025')
       .replace(/{eventLocation}/g, 'Convention Center')
-      .replace(/{qrCodeUrl}/g, 'https://via.placeholder.com/200x200?text=QR+Code')
+      .replace(/{qrCodeUrl}/g, 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=SAMPLE')
       .replace(/{registrationId}/g, 'REG-12345')
+  }
+
+  if (isLoading) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading template...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -413,8 +581,10 @@ export default function EmailTemplateEditor({
                           </div>
                         ) : (
                           <textarea
+                            data-block-id={block.id}
                             value={block.content}
                             onChange={(e) => updateBlock(block.id, e.target.value)}
+                            onFocus={(e) => setActiveTextarea(e.target)}
                             rows={block.type === 'text' ? 3 : 1}
                             className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                             placeholder={`Enter ${block.type} content...`}
@@ -426,7 +596,7 @@ export default function EmailTemplateEditor({
                 )}
 
                 {/* Add Block Buttons */}
-                <div className="mt-6 flex flex-wrap gap-2">
+                <div className="mt-6 flex flex-wrap gap-2 items-center">
                   <button
                     onClick={() => addBlock('logo')}
                     className="px-4 py-2 border rounded-lg hover:bg-muted"
@@ -457,6 +627,50 @@ export default function EmailTemplateEditor({
                   >
                     + QR Code
                   </button>
+                  
+                  {/* Insert Variable Dropdown */}
+                  <div className="relative ml-2">
+                    <button
+                      onClick={() => setShowVariableMenu(showVariableMenu === 'visual' ? null : 'visual')}
+                      className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 flex items-center gap-2"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Insert Variable
+                    </button>
+                    
+                    {showVariableMenu === 'visual' && (
+                      <>
+                        <div 
+                          className="fixed inset-0 z-10" 
+                          onClick={() => setShowVariableMenu(null)}
+                        />
+                        <div className="absolute left-0 mt-2 w-80 bg-white dark:bg-gray-800 border rounded-lg shadow-lg z-20 max-h-96 overflow-y-auto">
+                          <div className="p-3">
+                            <div className="text-xs font-semibold text-muted-foreground px-2 py-1 mb-2">
+                              Click to insert:
+                            </div>
+                            {AVAILABLE_VARIABLES.map((variable) => (
+                              <button
+                                key={variable.name}
+                                onClick={() => insertVariable(variable.name)}
+                                className="w-full text-left px-3 py-2 hover:bg-muted rounded flex flex-col gap-1 mb-1"
+                              >
+                                <div className="flex items-center justify-between">
+                                  <span className="font-medium text-sm">{variable.label}</span>
+                                  <code className="text-xs bg-muted px-1.5 py-0.5 rounded">
+                                    {`{${variable.name}}`}
+                                  </code>
+                                </div>
+                                <span className="text-xs text-muted-foreground">
+                                  {variable.description}
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </div>
 
                 {/* Variables Help */}
@@ -478,6 +692,7 @@ export default function EmailTemplateEditor({
                 <textarea
                   value={customHtml}
                   onChange={(e) => setCustomHtml(e.target.value)}
+                  onFocus={(e) => setActiveTextarea(e.target)}
                   className="w-full h-[600px] p-4 font-mono text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   placeholder="Enter custom HTML template..."
                 />

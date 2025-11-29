@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { Check, X, Search, Mail } from 'lucide-react'
+import { toast } from 'sonner'
 
 type Registration = {
   id: string
@@ -52,11 +53,7 @@ export default function RegistrationActions({
 
   const handleBulkAction = async (action: 'accept' | 'reject') => {
     if (selected.size === 0) {
-      alert('Please select at least one registration')
-      return
-    }
-
-    if (!confirm(`${action} ${selected.size} registration(s)?`)) {
+      toast.error('Please select at least one registration')
       return
     }
 
@@ -73,9 +70,10 @@ export default function RegistrationActions({
 
       if (!response.ok) throw new Error('Failed to update registrations')
 
+      toast.success(`Successfully ${action}ed ${selected.size} registration(s)`)
       window.location.reload()
     } catch (error) {
-      alert('Failed to update registrations. Please try again.')
+      toast.error('Failed to update registrations. Please try again.')
     } finally {
       setIsProcessing(false)
     }
@@ -83,7 +81,7 @@ export default function RegistrationActions({
 
   const handleBulkEmail = async () => {
     if (selected.size === 0) {
-      alert('Please select at least one registration')
+      toast.error('Please select at least one registration')
       return
     }
 
@@ -93,11 +91,7 @@ export default function RegistrationActions({
     })
 
     if (acceptedSelected.length === 0) {
-      alert('Please select at least one accepted registration')
-      return
-    }
-
-    if (!confirm(`Send invitation emails to ${acceptedSelected.length} attendee(s)?`)) {
+      toast.error('Please select at least one accepted registration')
       return
     }
 
@@ -111,13 +105,21 @@ export default function RegistrationActions({
         }),
       })
 
-      if (!response.ok) throw new Error('Failed to send emails')
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || 'Failed to send emails')
+      }
 
       const result = await response.json()
-      alert(`Successfully sent ${result.sent} invitation(s). Failed: ${result.failed}`)
+      if (result.failed > 0) {
+        toast.warning(`Sent ${result.sent} invitation(s). ${result.failed} failed.`)
+      } else {
+        toast.success(`Successfully sent ${result.sent} invitation(s)`)
+      }
       window.location.reload()
     } catch (error) {
-      alert('Failed to send emails. Please try again.')
+      const errorMessage = error instanceof Error ? error.message : 'Failed to send emails. Please try again.'
+      toast.error(errorMessage, { duration: 10000 })
     } finally {
       setIsProcessing(false)
     }
@@ -197,6 +199,7 @@ export default function RegistrationActions({
               </th>
               <th className="px-4 py-3 text-left text-sm font-medium">Email</th>
               <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
+              <th className="px-4 py-3 text-left text-sm font-medium">Invite Sent</th>
               <th className="px-4 py-3 text-left text-sm font-medium">Registered</th>
               <th className="px-4 py-3 text-left text-sm font-medium">Actions</th>
             </tr>
@@ -225,6 +228,17 @@ export default function RegistrationActions({
                   >
                     {registration.status}
                   </span>
+                </td>
+                <td className="px-4 py-3">
+                  {registration.inviteSent ? (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+                      ✓ Sent
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400">
+                      Not Sent
+                    </span>
+                  )}
                 </td>
                 <td className="px-4 py-3 text-sm text-muted-foreground">
                   {new Date(registration.createdAt).toLocaleDateString()}

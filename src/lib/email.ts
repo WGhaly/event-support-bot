@@ -59,16 +59,43 @@ export async function sendEventInvite({
 
   try {
     const client = getResendClient()
-    const data = await client.emails.send({
+    
+    console.log('[Email] Sending email:', {
+      from: fromEmail,
+      to,
+      subject: `Invitation: ${eventName}`,
+      hasCustomTemplate: !!customTemplate,
+    })
+    
+    const { data, error } = await client.emails.send({
       from: fromEmail,
       to,
       subject: `Invitation: ${eventName}`,
       html: htmlContent,
     })
 
+    if (error) {
+      console.error('[Email] Resend API error:', error)
+      
+      // Check for sandbox mode restriction
+      if (error.message && error.message.includes('can only send testing emails')) {
+        throw new Error(`Email blocked by Resend sandbox mode. You can only send to waseem.ghaly@progressiosolutions.com. To send to other emails, verify a domain at resend.com/domains`)
+      }
+      
+      throw new Error(`Resend API error: ${error.message || JSON.stringify(error)}`)
+    }
+
+    console.log('[Email] Successfully sent, ID:', data?.id)
     return { success: true, data }
   } catch (error) {
-    console.error('Email sending error:', error)
+    console.error('[Email] Sending error:', error)
+    console.error('[Email] Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      from: fromEmail,
+      to,
+      hasResendKey: !!process.env.RESEND_API_KEY,
+      resendKeyPrefix: process.env.RESEND_API_KEY?.substring(0, 10) + '...',
+    })
     return { success: false, error }
   }
 }

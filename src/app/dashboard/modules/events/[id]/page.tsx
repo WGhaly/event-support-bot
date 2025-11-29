@@ -1,5 +1,6 @@
-import { notFound } from 'next/navigation'
+import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
+import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import {
   ArrowLeft,
@@ -18,43 +19,43 @@ export default async function EventDetailsPage({
 }: {
   params: Promise<{ id: string }>
 }) {
-  // Auth is handled by dashboard layout - we can safely assume user is authenticated here
-  // Getting session from auth() might fail in Edge Runtime, so we'll get user ID from the database query
+  const session = await auth()
+  if (!session?.user?.id) {
+    redirect('/auth/login')
+  }
   
   const { id } = await params
   
-  let event
-  try {
-    event = await prisma.event.findUnique({
-      where: { id },
-      include: {
-        _count: {
-          select: {
-            registrations: true,
-            formFields: true,
-          },
-        },
-        user: {
-          select: {
-            id: true,
-            name: true,
-          },
+  const event = await prisma.event.findUnique({
+    where: { id },
+    include: {
+      _count: {
+        select: {
+          registrations: true,
+          formFields: true,
         },
       },
-    })
-  } catch (error) {
-    console.error('Database error fetching event:', error)
-    // If database fails, we can't do much - let it error
-    throw error
-  }
+    },
+  })
 
   if (!event) {
     notFound()
   }
 
-  // Since we can't reliably get session.user.id in Edge Runtime,
-  // we'll just show the event. Access control is done at the API level.
-  // This is temporary until we fix the Edge Runtime auth() issue.
+  // Verify ownership
+  if (event.userId !== session.user.id) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-2">Access Denied</h1>
+          <p className="text-muted-foreground mb-4">You don't have permission to view this event.</p>
+          <Link href="/dashboard/modules/events" className="text-primary hover:underline">
+            Back to Events
+          </Link>
+        </div>
+      </div>
+    )
+  }
 
   const registrationUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/register/${event.slug}`
 

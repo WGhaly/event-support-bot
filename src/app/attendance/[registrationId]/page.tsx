@@ -23,6 +23,9 @@ export default async function AttendancePage({
       event: {
         include: {
           user: true,
+          formFields: {
+            orderBy: { order: 'asc' },
+          },
         },
       },
       attendance: {
@@ -63,7 +66,7 @@ export default async function AttendancePage({
   const latestAttendance = registration.attendance[0]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 py-4 sm:py-12 px-3 sm:px-4">
       <div className="max-w-3xl mx-auto">
         {/* Back Button */}
         <Link
@@ -75,18 +78,18 @@ export default async function AttendancePage({
         </Link>
 
         {/* Event Info */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-6">
-          <div className="flex items-center gap-3 mb-4">
-            <Calendar className="w-6 h-6 text-primary" />
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 sm:p-6 mb-4 sm:mb-6">
+          <div className="flex items-center gap-3 mb-2 sm:mb-4">
+            <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
             <div>
-              <h2 className="font-semibold">{registration.event.name}</h2>
-              <p className="text-sm text-muted-foreground">Event Check-in</p>
+              <h2 className="text-lg sm:text-xl font-semibold">{registration.event.name}</h2>
+              <p className="text-xs sm:text-sm text-muted-foreground">Event Check-in</p>
             </div>
           </div>
         </div>
 
         {/* Attendee Information */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 sm:p-8 mb-4 sm:mb-6">
           <h1 className="text-2xl font-bold mb-6">Attendee Information</h1>
 
           <div className="space-y-4">
@@ -123,14 +126,18 @@ export default async function AttendancePage({
               <div className="p-4 bg-muted/50 rounded-lg">
                 <div className="text-sm text-muted-foreground mb-3">Registration Details</div>
                 <div className="space-y-2">
-                  {Object.entries(formData).map(([key, value]) => (
-                    <div key={key} className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">{key}:</span>
-                      <span className="text-sm font-medium">
-                        {Array.isArray(value) ? value.join(', ') : String(value)}
-                      </span>
-                    </div>
-                  ))}
+                  {Object.entries(formData).map(([fieldId, value]) => {
+                    const field = registration.event.formFields.find(f => f.id === fieldId)
+                    const label = field?.label || fieldId
+                    return (
+                      <div key={fieldId} className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-2">
+                        <span className="text-sm text-muted-foreground font-medium">{label}:</span>
+                        <span className="text-sm font-medium break-words">
+                          {Array.isArray(value) ? value.join(', ') : String(value)}
+                        </span>
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             )}
@@ -138,7 +145,7 @@ export default async function AttendancePage({
         </div>
 
         {/* Attendance Status */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 sm:p-8">
           {hasAttended ? (
             <div className="text-center">
               <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full mb-4">

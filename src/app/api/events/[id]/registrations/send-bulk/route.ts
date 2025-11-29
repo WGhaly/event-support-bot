@@ -8,15 +8,22 @@ export async function POST(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
+    console.log('[send-bulk] Starting email send process')
+    
     const session = await auth()
     if (!session?.user?.id) {
+      console.log('[send-bulk] Unauthorized - no session')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const { id: eventId } = await context.params
     const { registrationIds } = await request.json()
 
+    console.log('[send-bulk] Event ID:', eventId)
+    console.log('[send-bulk] Registration IDs:', registrationIds)
+
     if (!Array.isArray(registrationIds) || registrationIds.length === 0) {
+      console.log('[send-bulk] No registration IDs provided')
       return NextResponse.json(
         { error: 'Registration IDs are required' },
         { status: 400 }
@@ -32,11 +39,14 @@ export async function POST(
     })
 
     if (!event) {
+      console.log('[send-bulk] Event not found or unauthorized')
       return NextResponse.json(
         { error: 'Event not found or unauthorized' },
         { status: 404 }
       )
     }
+
+    console.log('[send-bulk] Event found:', event.name)
 
     // Fetch registrations
     const registrations = await prisma.eventRegistration.findMany({
@@ -44,28 +54,39 @@ export async function POST(
         id: { in: registrationIds },
         eventId: eventId,
         status: 'accepted', // Only send to accepted registrations
-        inviteSent: false, // Only send to those who haven't received it yet
       },
     })
 
+    console.log('[send-bulk] Found registrations:', registrations.length)
+
     if (registrations.length === 0) {
       return NextResponse.json(
-        { error: 'No eligible registrations found' },
+        { error: 'No eligible registrations found. Make sure registrations are accepted.' },
         { status: 400 }
       )
     }
 
     // Prepare email data
     const qrCodeBaseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+    console.log('[send-bulk] QR Code Base URL:', qrCodeBaseUrl)
+    console.log('[send-bulk] Email template exists:', !!event.emailTemplate)
+    
     const invites = registrations.map(registration => {
       let formData: any = {}
       try {
         formData = JSON.parse(registration.formData)
       } catch (e) {
-        console.error('Failed to parse form data:', e)
+        console.error('[send-bulk] Failed to parse form data:', e)
       }
 
-      const attendeeName = formData.name || formData.fullName || 'Attendee'
+      // Try multiple field names for attendee name
+      const attendeeName = formData.name || formData.fullName || formData.full_name || 
+        formData.firstName || formData.first_name || 
+        (formData.firstName && formData.lastName ? `${formData.firstName} ${formData.lastName}` : null) ||
+        (formData.first_name && formData.last_name ? `${formData.first_name} ${formData.last_name}` : null) ||
+        'Attendee'
+      
+      console.log('[send-bulk] Extracted attendee name:', attendeeName, 'from formData:', Object.keys(formData))
 
       return {
         to: registration.email,
@@ -73,14 +94,23 @@ export async function POST(
         eventDate: event.startDate?.toISOString(),
         eventLocation: event.location || undefined,
         attendeeName,
-        qrCodeUrl: `${qrCodeBaseUrl}/attendance/${registration.id}`,
+        qrCodeUrl: `${qrCodeBaseUrl}/api/qr-code?registrationId=${registration.id}`,
         customTemplate: event.emailTemplate || undefined,
         registrationId: registration.id,
       }
     })
 
+    console.log('[send-bulk] Prepared invites:', invites.length)
+    console.log('[send-bulk] Sample invite:', JSON.stringify(invites[0], null, 2))
+
     // Send bulk emails
+    console.log('[send-bulk] Calling sendBulkEventInvites...')
     const result = await sendBulkEventInvites(invites)
+
+    console.log('[send-bulk] Result:', { sent: result.sent, failed: result.failed, success: result.success })
+    if (result.errors && result.errors.length > 0) {
+      console.log('[send-bulk] Errors:', JSON.stringify(result.errors, null, 2))
+    }
 
     // Update sent status for successful sends
     if (result.sent > 0) {
@@ -106,8 +136,9 @@ export async function POST(
     })
   } catch (error) {
     console.error('Bulk send error:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Failed to send invitations'
     return NextResponse.json(
-      { error: 'Failed to send invitations' },
+      { error: errorMessage },
       { status: 500 }
     )
   }
