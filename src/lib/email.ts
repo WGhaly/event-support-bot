@@ -48,7 +48,7 @@ export async function sendEventInvite({
   })
   
   // Use custom template if provided, otherwise use default
-  const htmlContent = customTemplate
+  let htmlContent = customTemplate
     ? replaceTemplateVariables(customTemplate, {
         attendeeName: attendeeName || 'Attendee',
         eventName,
@@ -65,6 +65,9 @@ export async function sendEventInvite({
         qrCodeUrl: qrCodeDataUri,
         registrationId,
       })
+  
+  // Process template to fix image URLs
+  htmlContent = processEmailTemplate(htmlContent)
 
   try {
     const client = getResendClient()
@@ -152,6 +155,25 @@ function replaceTemplateVariables(
   }
 
   return result
+}
+
+/**
+ * Process email template to fix image URLs
+ * Converts relative and localhost URLs to production URLs
+ */
+function processEmailTemplate(html: string): string {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://luuj.cloud'
+  
+  // Replace relative image URLs (src="/uploads/...")
+  html = html.replace(/src="\/([^"]+)"/g, `src="${baseUrl}/$1"`)
+  
+  // Replace localhost URLs (src="http://localhost:3000/...")
+  html = html.replace(/src="http:\/\/localhost:\d+\/([^"]+)"/g, `src="${baseUrl}/$1"`)
+  
+  // Replace localhost URLs (src="https://localhost:3000/...")  
+  html = html.replace(/src="https:\/\/localhost:\d+\/([^"]+)"/g, `src="${baseUrl}/$1"`)
+  
+  return html
 }
 
 /**
