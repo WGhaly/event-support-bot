@@ -37,8 +37,22 @@ export default async function EventDetailsPage({
     },
   })
 
-  if (!event || event.userId !== session.user.id) {
+  if (!event) {
     notFound()
+  }
+
+  if (event.userId !== session.user.id) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-2">Access Denied</h1>
+          <p className="text-muted-foreground mb-4">You don't have permission to view this event.</p>
+          <Link href="/dashboard/modules/events" className="text-primary hover:underline">
+            Back to Events
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   const registrationUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/register/${event.slug}`
