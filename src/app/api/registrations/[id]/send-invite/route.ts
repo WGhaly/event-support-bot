@@ -53,8 +53,8 @@ export async function POST(
 
     const attendeeName = formData.name || formData.fullName || 'Attendee'
 
-    // Generate QR code URL (attendance page)
-    const qrCodeUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/attendance/${registration.id}`
+    // Generate attendance URL (what the QR code will encode)
+    const attendanceUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/attendance/${registration.id}`
 
     // Send email
     const result = await sendEventInvite({
@@ -63,7 +63,7 @@ export async function POST(
       eventDate: registration.event.startDate?.toISOString(),
       eventLocation: registration.event.location || undefined,
       attendeeName,
-      qrCodeUrl,
+      qrCodeData: attendanceUrl,
       customTemplate: registration.event.emailTemplate || undefined,
       registrationId: registration.id,
     })
