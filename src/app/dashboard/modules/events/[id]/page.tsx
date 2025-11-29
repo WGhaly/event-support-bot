@@ -19,7 +19,14 @@ export default async function EventDetailsPage({
 }: {
   params: Promise<{ id: string }>
 }) {
-  const session = await auth()
+  let session
+  try {
+    session = await auth()
+  } catch (error) {
+    console.error('Auth error in event page:', error)
+    redirect('/auth/login')
+  }
+  
   if (!session?.user?.id) {
     redirect('/auth/login')
   }
