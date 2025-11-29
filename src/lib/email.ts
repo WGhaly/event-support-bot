@@ -1,4 +1,5 @@
 import { Resend } from 'resend'
+import QRCode from 'qrcode'
 
 let resend: Resend | null = null
 
@@ -18,7 +19,7 @@ export interface SendEventInviteParams {
   eventDate?: string
   eventLocation?: string
   attendeeName?: string
-  qrCodeUrl: string
+  qrCodeData: string // The URL that the QR code will encode
   customTemplate?: string
   registrationId: string
 }
@@ -32,11 +33,19 @@ export async function sendEventInvite({
   eventDate,
   eventLocation,
   attendeeName,
-  qrCodeUrl,
+  qrCodeData,
   customTemplate,
   registrationId,
 }: SendEventInviteParams) {
   const fromEmail = process.env.RESEND_FROM_EMAIL || 'events@yourdomain.com'
+  
+  // Generate QR code as base64 data URI for inline embedding
+  const qrCodeDataUri = await QRCode.toDataURL(qrCodeData, {
+    errorCorrectionLevel: 'H',
+    type: 'image/png',
+    width: 400,
+    margin: 2,
+  })
   
   // Use custom template if provided, otherwise use default
   const htmlContent = customTemplate
@@ -45,7 +54,7 @@ export async function sendEventInvite({
         eventName,
         eventDate: eventDate || 'TBA',
         eventLocation: eventLocation || 'TBA',
-        qrCodeUrl,
+        qrCodeUrl: qrCodeDataUri,
         registrationId,
       })
     : getDefaultTemplate({
@@ -53,7 +62,7 @@ export async function sendEventInvite({
         eventName,
         eventDate,
         eventLocation,
-        qrCodeUrl,
+        qrCodeUrl: qrCodeDataUri,
         registrationId,
       })
 

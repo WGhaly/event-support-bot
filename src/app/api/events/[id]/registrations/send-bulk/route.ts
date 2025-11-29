@@ -88,13 +88,15 @@ export async function POST(
       
       console.log('[send-bulk] Extracted attendee name:', attendeeName, 'from formData:', Object.keys(formData))
 
+      const attendanceUrl = `${qrCodeBaseUrl}/attendance/${registration.id}`
+
       return {
         to: registration.email,
         eventName: event.name,
         eventDate: event.startDate?.toISOString(),
         eventLocation: event.location || undefined,
         attendeeName,
-        qrCodeUrl: `${qrCodeBaseUrl}/api/qr-code?registrationId=${registration.id}`,
+        qrCodeData: attendanceUrl, // URL that QR code will encode
         customTemplate: event.emailTemplate || undefined,
         registrationId: registration.id,
       }
