@@ -13,6 +13,11 @@ import {
 } from 'lucide-react'
 import { CopyUrlButton } from '@/components/copy-url-button'
 
+// Force dynamic rendering
+// Build timestamp: 2025-11-29 - Testing route resolution
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default async function EventDetailsPage({
   params,
 }: {
