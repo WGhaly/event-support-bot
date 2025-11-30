@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
       if (contentType?.includes('application/x-www-form-urlencoded')) {
         return NextResponse.redirect(
           new URL(
-            `/dashboard/projects/new?error=${encodeURIComponent(errorMessage)}`,
+            `/dashboard/modules/badges/projects/new?error=${encodeURIComponent(errorMessage)}`,
             req.url
           )
         );
@@ -114,7 +114,7 @@ export async function POST(req: NextRequest) {
     // For HTML form, redirect to project page
     if (contentType?.includes('application/x-www-form-urlencoded')) {
       return NextResponse.redirect(
-        new URL(`/dashboard/projects/${project.id}`, req.url)
+        new URL(`/dashboard/modules/badges/projects/${project.id}`, req.url)
       );
     }
 
@@ -129,7 +129,7 @@ export async function POST(req: NextRequest) {
     if (contentType?.includes('application/x-www-form-urlencoded')) {
       return NextResponse.redirect(
         new URL(
-          '/dashboard/projects/new?error=' +
+          '/dashboard/modules/badges/projects/new?error=' +
             encodeURIComponent('Failed to create project'),
           req.url
         )
