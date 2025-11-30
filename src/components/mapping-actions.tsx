@@ -30,7 +30,7 @@ export default function MappingActions({
       });
 
       if (response.ok) {
-        router.push(`/dashboard/projects/${projectId}`);
+        router.push(`/dashboard/modules/badges/projects/${projectId}`);
         router.refresh();
       } else {
         alert('Failed to delete field mapping');
@@ -46,13 +46,13 @@ export default function MappingActions({
   return (
     <div className="mt-6 flex gap-4">
       <Link
-        href={`/dashboard/projects/${projectId}`}
+        href={`/dashboard/modules/badges/projects/${projectId}`}
         className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
       >
         Back to Project
       </Link>
       <Link
-        href={`/dashboard/projects/${projectId}/exports/new?mappingId=${mappingId}`}
+        href={`/dashboard/modules/badges/projects/${projectId}/exports/new?mappingId=${mappingId}`}
         className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
       >
         Generate Badges ({rowCount})

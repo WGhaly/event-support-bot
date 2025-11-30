@@ -25,7 +25,7 @@ export function ExportActions({ projectId, exportId }: ExportActionsProps) {
         throw new Error('Failed to delete export');
       }
 
-      router.push(`/dashboard/projects/${projectId}`);
+      router.push(`/dashboard/modules/badges/projects/${projectId}`);
     } catch (error) {
       console.error('Failed to delete export:', error);
       alert('Failed to delete export. Please try again.');
@@ -35,7 +35,7 @@ export function ExportActions({ projectId, exportId }: ExportActionsProps) {
   return (
     <div className="flex gap-4">
       <Link
-        href={`/dashboard/projects/${projectId}`}
+        href={`/dashboard/modules/badges/projects/${projectId}`}
         className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
       >
         Back to Project

@@ -86,7 +86,7 @@ export function ProjectContent({ project, fieldMappings }: ProjectContentProps) 
             Upload and design your badge templates
           </p>
           <Link
-            href={`/dashboard/projects/${project.id}/templates/new`}
+            href={`/dashboard/modules/badges/projects/${project.id}/templates/new`}
             className="block w-full text-center bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-2.5 px-4 rounded-xl font-semibold transition-all text-sm shadow-lg shadow-blue-500/30 hover:scale-105"
           >
             + Upload Template
@@ -108,7 +108,7 @@ export function ProjectContent({ project, fieldMappings }: ProjectContentProps) 
             Import CSV or Excel data files
           </p>
           <Link
-            href={`/dashboard/projects/${project.id}/datasets/new`}
+            href={`/dashboard/modules/badges/projects/${project.id}/datasets/new`}
             className="block w-full text-center bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white py-2.5 px-4 rounded-xl font-semibold transition-all text-sm shadow-lg shadow-emerald-500/30 hover:scale-105"
           >
             + Import Data
@@ -131,7 +131,7 @@ export function ProjectContent({ project, fieldMappings }: ProjectContentProps) 
           </p>
           {project.templates.length > 0 && project.datasets.length > 0 ? (
             <Link
-              href={`/dashboard/projects/${project.id}/mappings/new`}
+              href={`/dashboard/modules/badges/projects/${project.id}/mappings/new`}
               className="block w-full text-center bg-gradient-to-r from-violet-600 to-violet-700 hover:from-violet-700 hover:to-violet-800 text-white py-2.5 px-4 rounded-xl font-semibold transition-all text-sm shadow-lg shadow-violet-500/30 hover:scale-105"
             >
               Create Mapping
@@ -153,7 +153,7 @@ export function ProjectContent({ project, fieldMappings }: ProjectContentProps) 
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold text-blue-900">Templates</h2>
             <Link
-              href={`/dashboard/projects/${project.id}/templates/new`}
+              href={`/dashboard/modules/badges/projects/${project.id}/templates/new`}
               className="text-blue-600 hover:text-blue-700 font-semibold text-sm flex items-center gap-1"
             >
               <span>+</span> Add Template
@@ -181,7 +181,7 @@ export function ProjectContent({ project, fieldMappings }: ProjectContentProps) 
                   </p>
                   <div className="flex items-center gap-2">
                     <Link
-                      href={`/dashboard/projects/${project.id}/templates/${template.id}`}
+                      href={`/dashboard/modules/badges/projects/${project.id}/templates/${template.id}`}
                       className="flex-1 text-center text-sm bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-2 px-3 rounded-xl font-semibold transition-all shadow-md hover:shadow-lg"
                     >
                       Edit
@@ -205,7 +205,7 @@ export function ProjectContent({ project, fieldMappings }: ProjectContentProps) 
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-emerald-900">Datasets</h2>
             <Link
-              href={`/dashboard/projects/${project.id}/datasets/new`}
+              href={`/dashboard/modules/badges/projects/${project.id}/datasets/new`}
               className="text-sm bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white py-2 px-4 rounded-xl font-semibold transition-all shadow-md hover:shadow-lg"
             >
               + Import Data
@@ -253,7 +253,7 @@ export function ProjectContent({ project, fieldMappings }: ProjectContentProps) 
           </h2>
           {project.templates.length > 0 && project.datasets.length > 0 && (
             <Link
-              href={`/dashboard/projects/${project.id}/mappings/new`}
+              href={`/dashboard/modules/badges/projects/${project.id}/mappings/new`}
               className="px-5 py-2.5 bg-gradient-to-r from-violet-600 to-violet-700 hover:from-violet-700 hover:to-violet-800 text-white rounded-xl font-semibold text-sm transition-all shadow-md hover:shadow-lg"
             >
               Create Mapping
@@ -278,7 +278,7 @@ export function ProjectContent({ project, fieldMappings }: ProjectContentProps) 
             </p>
             {project.templates.length > 0 && project.datasets.length > 0 && (
               <Link
-                href={`/dashboard/projects/${project.id}/mappings/new`}
+                href={`/dashboard/modules/badges/projects/${project.id}/mappings/new`}
                 className="inline-block px-6 py-2.5 bg-gradient-to-r from-violet-600 to-violet-700 hover:from-violet-700 hover:to-violet-800 text-white rounded-xl font-semibold text-sm transition-all shadow-md hover:shadow-lg"
               >
                 Create Your First Mapping
@@ -310,7 +310,7 @@ export function ProjectContent({ project, fieldMappings }: ProjectContentProps) 
                   </div>
                   <div className="flex items-center gap-3">
                     <Link
-                      href={`/dashboard/projects/${project.id}/mappings/${mapping.id}`}
+                      href={`/dashboard/modules/badges/projects/${project.id}/mappings/${mapping.id}`}
                       className="text-sm text-violet-600 hover:text-violet-700 font-semibold py-2 px-4 hover:bg-violet-50 rounded-lg transition"
                     >
                       View
@@ -361,7 +361,7 @@ export function ProjectContent({ project, fieldMappings }: ProjectContentProps) 
                     {exportItem.status}
                   </span>
                   <Link
-                    href={`/dashboard/projects/${project.id}/exports/${exportItem.id}`}
+                    href={`/dashboard/modules/badges/projects/${project.id}/exports/${exportItem.id}`}
                     className="text-blue-600 hover:text-blue-700 font-semibold text-sm px-4 py-2 hover:bg-blue-50 rounded-lg transition"
                   >
                     View
